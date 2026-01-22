@@ -15,9 +15,15 @@ import {
 } from '@dxc-technology/halstack-react';
 import { getStatusColor, getPriorityColor } from '../../data/mockSubmissions';
 import { getDocumentsBySubmission } from '../../data/mockDocuments';
+import { mockRiskAssessments } from '../../data/mockRiskData';
+import { mockTasks, submissionSLAs } from '../../data/mockTasks';
 import DocumentCard from '../shared/DocumentCard';
 import DocumentUpload from '../shared/DocumentUpload';
 import IDPResults from '../shared/IDPResults';
+import RiskScoreCard from '../shared/RiskScoreCard';
+import ContributingFactors from '../shared/ContributingFactors';
+import TaskList from '../shared/TaskList';
+import SLATimer from '../shared/SLATimer';
 import './UnderwritingWorkbench.css';
 
 const UnderwritingWorkbench = ({ submission }) => {
@@ -28,6 +34,9 @@ const UnderwritingWorkbench = ({ submission }) => {
   const [documents, setDocuments] = useState(
     submission ? getDocumentsBySubmission(submission.id) : []
   );
+  const riskAssessment = submission ? mockRiskAssessments[submission.id] : null;
+  const tasks = submission ? mockTasks[submission.id] : null;
+  const slaData = submission ? submissionSLAs[submission.id] : null;
 
   if (!submission) {
     return (
@@ -506,6 +515,126 @@ const UnderwritingWorkbench = ({ submission }) => {
                         )}
                       </DxcFlex>
                     </>
+                  )}
+                </DxcFlex>
+              </DxcInset>
+            </DxcTabs.Tab>
+
+            <DxcTabs.Tab
+              label="Risk Assessment"
+              icon="assessment"
+              active={activeTabIndex === 5}
+              onClick={() => setActiveTabIndex(5)}
+            >
+              <DxcInset space="var(--spacing-padding-m)">
+                <DxcFlex direction="column" gap="var(--spacing-gap-l)">
+                  {riskAssessment ? (
+                    <>
+                      {/* Risk Score Card */}
+                      <RiskScoreCard riskAssessment={riskAssessment} />
+
+                      {/* Contributing Factors */}
+                      <ContributingFactors factors={riskAssessment.contributingFactors} />
+
+                      {/* Third-Party Data */}
+                      {riskAssessment.thirdPartyData && (
+                        <div>
+                          <DxcHeading level={4} text="Third-Party Data" />
+                          <div
+                            style={{
+                              marginTop: 'var(--spacing-gap-m)',
+                              padding: 'var(--spacing-padding-m)',
+                              backgroundColor: 'var(--color-bg-neutral-lightest)',
+                              borderRadius: 'var(--border-radius-m)',
+                              border: '1px solid var(--border-color-neutral-light)'
+                            }}
+                          >
+                            <DxcFlex gap="var(--spacing-gap-l)" wrap="wrap">
+                              {Object.entries(riskAssessment.thirdPartyData).map(([key, value]) => (
+                                <DxcFlex key={key} direction="column" gap="var(--spacing-gap-xs)">
+                                  <DxcTypography fontSize="12px" color="var(--color-fg-neutral-stronger)">
+                                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                                  </DxcTypography>
+                                  <DxcTypography fontSize="font-scale-03" fontWeight="font-weight-semibold">
+                                    {value}
+                                  </DxcTypography>
+                                </DxcFlex>
+                              ))}
+                            </DxcFlex>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Exposure Analysis */}
+                      {riskAssessment.exposureAnalysis && (
+                        <div>
+                          <DxcHeading level={4} text="Exposure Analysis" />
+                          <div
+                            style={{
+                              marginTop: 'var(--spacing-gap-m)',
+                              padding: 'var(--spacing-padding-m)',
+                              backgroundColor: 'var(--color-bg-neutral-lightest)',
+                              borderRadius: 'var(--border-radius-m)',
+                              border: '1px solid var(--border-color-neutral-light)'
+                            }}
+                          >
+                            <DxcFlex gap="var(--spacing-gap-l)" wrap="wrap">
+                              {Object.entries(riskAssessment.exposureAnalysis).map(([key, value]) => (
+                                <DxcFlex key={key} direction="column" gap="var(--spacing-gap-xs)">
+                                  <DxcTypography fontSize="12px" color="var(--color-fg-neutral-stronger)">
+                                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                                  </DxcTypography>
+                                  <DxcTypography fontSize="font-scale-03" fontWeight="font-weight-semibold">
+                                    {value}
+                                  </DxcTypography>
+                                </DxcFlex>
+                              ))}
+                            </DxcFlex>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div style={{ padding: 'var(--spacing-padding-xl)', textAlign: 'center' }}>
+                      <DxcFlex direction="column" gap="var(--spacing-gap-m)" alignItems="center">
+                        <span className="material-icons" style={{ fontSize: '48px', color: 'var(--color-fg-neutral-dark)' }}>
+                          assessment
+                        </span>
+                        <DxcTypography fontSize="font-scale-03" color="var(--color-fg-neutral-dark)">
+                          Risk assessment not yet available
+                        </DxcTypography>
+                      </DxcFlex>
+                    </div>
+                  )}
+                </DxcFlex>
+              </DxcInset>
+            </DxcTabs.Tab>
+
+            <DxcTabs.Tab
+              label="Tasks & SLA"
+              icon="checklist_rtl"
+              active={activeTabIndex === 6}
+              onClick={() => setActiveTabIndex(6)}
+            >
+              <DxcInset space="var(--spacing-padding-m)">
+                <DxcFlex direction="column" gap="var(--spacing-gap-l)">
+                  {/* SLA Tracking */}
+                  {slaData && <SLATimer submissionSLA={slaData} />}
+
+                  {/* Task List */}
+                  {tasks && <TaskList tasks={tasks} />}
+
+                  {!tasks && !slaData && (
+                    <div style={{ padding: 'var(--spacing-padding-xl)', textAlign: 'center' }}>
+                      <DxcFlex direction="column" gap="var(--spacing-gap-m)" alignItems="center">
+                        <span className="material-icons" style={{ fontSize: '48px', color: 'var(--color-fg-neutral-dark)' }}>
+                          task
+                        </span>
+                        <DxcTypography fontSize="font-scale-03" color="var(--color-fg-neutral-dark)">
+                          No tasks or SLA data available
+                        </DxcTypography>
+                      </DxcFlex>
+                    </div>
                   )}
                 </DxcFlex>
               </DxcInset>
