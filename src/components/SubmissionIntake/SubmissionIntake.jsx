@@ -16,7 +16,7 @@ import {
 } from '@dxc-technology/halstack-react';
 import './SubmissionIntake.css';
 
-const SubmissionIntake = ({ productType = 'P&C' }) => {
+const SubmissionIntake = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -111,17 +111,11 @@ const SubmissionIntake = ({ productType = 'P&C' }) => {
     setShowSuccess(false);
   };
 
-  const lobOptions = productType === 'Life & Annuity'
-    ? [
-        { label: 'Term Life', value: 'term' },
-        { label: 'Whole Life', value: 'whole' },
-        { label: 'Universal Life', value: 'universal' },
-      ]
-    : [
-        { label: 'Commercial Auto - Fleet', value: 'fleet' },
-        { label: 'Commercial Auto - For-Hire', value: 'for-hire' },
-        { label: 'Commercial Auto - Business Use', value: 'business-use' },
-      ];
+  const lobOptions = [
+    { label: 'Commercial Auto - Fleet', value: 'fleet' },
+    { label: 'Commercial Auto - For-Hire', value: 'for-hire' },
+    { label: 'Commercial Auto - Business Use', value: 'business-use' },
+  ];
 
   const coverageOptions = [
     { label: '$250,000', value: '250000' },
@@ -259,91 +253,42 @@ const SubmissionIntake = ({ productType = 'P&C' }) => {
               <DxcFlex direction="column" gap="var(--spacing-gap-l)">
                 {currentStep === 1 && (
                   <div>
-                    <DxcHeading level={3} text={productType === 'P&C' ? "Business Information" : "Applicant Information"} />
+                    <DxcHeading level={3} text="Business Information" />
                     <DxcFlex direction="column" gap="var(--spacing-gap-m)" style={{ marginTop: 'var(--spacing-gap-m)' }}>
-                      {productType === 'Life & Annuity' ? (
-                        <>
-                          <DxcFlex gap="var(--spacing-gap-m)">
-                            <DxcTextInput
-                              label="First Name"
-                              placeholder="Enter first name"
-                              value={formData.firstName}
-                              onChange={({ value }) => handleInputChange('firstName', value)}
-                            />
-                            <DxcTextInput
-                              label="Last Name"
-                              placeholder="Enter last name"
-                              value={formData.lastName}
-                              onChange={({ value }) => handleInputChange('lastName', value)}
-                            />
-                          </DxcFlex>
-                          <DxcFlex gap="var(--spacing-gap-m)">
-                            <DxcDateInput
-                              label="Date of Birth"
-                              placeholder="MM/DD/YYYY"
-                              value={formData.dateOfBirth}
-                              onChange={({ value }) => handleInputChange('dateOfBirth', value)}
-                            />
-                            <DxcTextInput
-                              label="Social Security Number"
-                              placeholder="XXX-XX-XXXX"
-                              value={formData.ssn}
-                              onChange={({ value }) => handleInputChange('ssn', value)}
-                            />
-                          </DxcFlex>
-                          <DxcFlex gap="var(--spacing-gap-m)">
-                            <DxcTextInput
-                              label="Email"
-                              placeholder="Enter email address"
-                              value={formData.email}
-                              onChange={({ value }) => handleInputChange('email', value)}
-                            />
-                            <DxcTextInput
-                              label="Phone Number"
-                              placeholder="(XXX) XXX-XXXX"
-                              value={formData.phone}
-                              onChange={({ value }) => handleInputChange('phone', value)}
-                            />
-                          </DxcFlex>
-                        </>
-                      ) : (
-                        <>
-                          <DxcTextInput
-                            label="Business Name"
-                            placeholder="Enter business name"
-                            value={formData.businessName}
-                            onChange={({ value }) => handleInputChange('businessName', value)}
-                          />
-                          <DxcFlex gap="var(--spacing-gap-m)">
-                            <DxcTextInput
-                              label="Business Type"
-                              placeholder="e.g., LLC, Corporation"
-                              value={formData.businessType}
-                              onChange={({ value }) => handleInputChange('businessType', value)}
-                            />
-                            <DxcTextInput
-                              label="Years in Business"
-                              placeholder="Enter years"
-                              value={formData.yearsInBusiness}
-                              onChange={({ value }) => handleInputChange('yearsInBusiness', value)}
-                            />
-                          </DxcFlex>
-                          <DxcFlex gap="var(--spacing-gap-m)">
-                            <DxcTextInput
-                              label="Contact Email"
-                              placeholder="Enter email address"
-                              value={formData.contactEmail}
-                              onChange={({ value }) => handleInputChange('contactEmail', value)}
-                            />
-                            <DxcTextInput
-                              label="Contact Phone"
-                              placeholder="(XXX) XXX-XXXX"
-                              value={formData.contactPhone}
-                              onChange={({ value }) => handleInputChange('contactPhone', value)}
-                            />
-                          </DxcFlex>
-                        </>
-                      )}
+                      <DxcTextInput
+                        label="Business Name"
+                        placeholder="Enter business name"
+                        value={formData.businessName}
+                        onChange={({ value }) => handleInputChange('businessName', value)}
+                      />
+                      <DxcFlex gap="var(--spacing-gap-m)">
+                        <DxcTextInput
+                          label="Business Type"
+                          placeholder="e.g., LLC, Corporation"
+                          value={formData.businessType}
+                          onChange={({ value }) => handleInputChange('businessType', value)}
+                        />
+                        <DxcTextInput
+                          label="Years in Business"
+                          placeholder="Enter years"
+                          value={formData.yearsInBusiness}
+                          onChange={({ value }) => handleInputChange('yearsInBusiness', value)}
+                        />
+                      </DxcFlex>
+                      <DxcFlex gap="var(--spacing-gap-m)">
+                        <DxcTextInput
+                          label="Contact Email"
+                          placeholder="Enter email address"
+                          value={formData.contactEmail}
+                          onChange={({ value }) => handleInputChange('contactEmail', value)}
+                        />
+                        <DxcTextInput
+                          label="Contact Phone"
+                          placeholder="(XXX) XXX-XXXX"
+                          value={formData.contactPhone}
+                          onChange={({ value }) => handleInputChange('contactPhone', value)}
+                        />
+                      </DxcFlex>
                     </DxcFlex>
                   </div>
                 )}
@@ -378,127 +323,67 @@ const SubmissionIntake = ({ productType = 'P&C' }) => {
 
                 {currentStep === 3 && (
                   <div>
-                    <DxcHeading level={3} text={productType === 'P&C' ? "Fleet Information" : "Medical Information"} />
+                    <DxcHeading level={3} text="Fleet Information" />
                     <DxcFlex direction="column" gap="var(--spacing-gap-m)" style={{ marginTop: 'var(--spacing-gap-m)' }}>
-                      {productType === 'Life & Annuity' ? (
-                        <>
-                          <DxcRadioGroup
-                            label="Do you have any pre-existing medical conditions?"
-                            options={[
-                              { label: 'Yes', value: 'yes' },
-                              { label: 'No', value: 'no' }
-                            ]}
-                            value={formData.hasMedicalConditions}
-                            onChange={({ value }) => handleInputChange('hasMedicalConditions', value)}
-                          />
-                          {formData.hasMedicalConditions === 'yes' && (
-                            <DxcTextarea
-                              label="Please describe your medical conditions"
-                              placeholder="Enter details about your medical history"
-                              value={formData.medicalDetails}
-                              onChange={({ value }) => handleInputChange('medicalDetails', value)}
-                              rows={4}
-                            />
-                          )}
-                          <DxcRadioGroup
-                            label="Tobacco Use"
-                            options={[
-                              { label: 'Current Smoker', value: 'current' },
-                              { label: 'Former Smoker', value: 'former' },
-                              { label: 'Never Smoked', value: 'never' }
-                            ]}
-                            value={formData.smoker}
-                            onChange={({ value }) => handleInputChange('smoker', value)}
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <DxcFlex gap="var(--spacing-gap-m)">
-                            <DxcTextInput
-                              label="Fleet Size"
-                              placeholder="Number of vehicles"
-                              value={formData.fleetSize}
-                              onChange={({ value }) => handleInputChange('fleetSize', value)}
-                            />
-                            <DxcTextInput
-                              label="Number of Drivers"
-                              placeholder="Enter driver count"
-                              value={formData.driversCount}
-                              onChange={({ value }) => handleInputChange('driversCount', value)}
-                            />
-                          </DxcFlex>
-                          <DxcTextarea
-                            label="Vehicle Types"
-                            placeholder="e.g., 15 Tractors, 5 Box Trucks"
-                            value={formData.vehicleTypes}
-                            onChange={({ value }) => handleInputChange('vehicleTypes', value)}
-                            rows={3}
-                          />
-                          <DxcSelect
-                            label="Radius of Operation"
-                            placeholder="Select radius"
-                            options={[
-                              { label: 'Local (under 50 miles)', value: 'local' },
-                              { label: 'Regional (200-500 miles)', value: 'regional' },
-                              { label: 'Long Haul (500+ miles)', value: 'long-haul' }
-                            ]}
-                            value={formData.radiusOfOperation}
-                            onChange={({ value }) => handleInputChange('radiusOfOperation', value)}
-                          />
-                          <DxcTextInput
-                            label="Cargo Type"
-                            placeholder="e.g., General Freight, Hazardous Materials"
-                            value={formData.cargoType}
-                            onChange={({ value }) => handleInputChange('cargoType', value)}
-                          />
-                        </>
-                      )}
+                      <DxcFlex gap="var(--spacing-gap-m)">
+                        <DxcTextInput
+                          label="Fleet Size"
+                          placeholder="Number of vehicles"
+                          value={formData.fleetSize}
+                          onChange={({ value }) => handleInputChange('fleetSize', value)}
+                        />
+                        <DxcTextInput
+                          label="Number of Drivers"
+                          placeholder="Enter driver count"
+                          value={formData.driversCount}
+                          onChange={({ value }) => handleInputChange('driversCount', value)}
+                        />
+                      </DxcFlex>
+                      <DxcTextarea
+                        label="Vehicle Types"
+                        placeholder="e.g., 15 Tractors, 5 Box Trucks"
+                        value={formData.vehicleTypes}
+                        onChange={({ value }) => handleInputChange('vehicleTypes', value)}
+                        rows={3}
+                      />
+                      <DxcSelect
+                        label="Radius of Operation"
+                        placeholder="Select radius"
+                        options={[
+                          { label: 'Local (under 50 miles)', value: 'local' },
+                          { label: 'Regional (200-500 miles)', value: 'regional' },
+                          { label: 'Long Haul (500+ miles)', value: 'long-haul' }
+                        ]}
+                        value={formData.radiusOfOperation}
+                        onChange={({ value }) => handleInputChange('radiusOfOperation', value)}
+                      />
+                      <DxcTextInput
+                        label="Cargo Type"
+                        placeholder="e.g., General Freight, Hazardous Materials"
+                        value={formData.cargoType}
+                        onChange={({ value }) => handleInputChange('cargoType', value)}
+                      />
                     </DxcFlex>
                   </div>
                 )}
 
                 {currentStep === 4 && (
                   <div>
-                    <DxcHeading level={3} text={productType === 'P&C' ? "Loss History" : "Additional Information"} />
+                    <DxcHeading level={3} text="Loss History" />
                     <DxcFlex direction="column" gap="var(--spacing-gap-m)" style={{ marginTop: 'var(--spacing-gap-m)' }}>
-                      {productType === 'Life & Annuity' ? (
-                        <>
-                          <DxcTextInput
-                            label="Occupation"
-                            placeholder="Enter your occupation"
-                            value={formData.occupation}
-                            onChange={({ value }) => handleInputChange('occupation', value)}
-                          />
-                          <DxcTextInput
-                            label="Annual Income"
-                            placeholder="Enter annual income"
-                            value={formData.annualIncome}
-                            onChange={({ value }) => handleInputChange('annualIncome', value)}
-                          />
-                          <DxcTextInput
-                            label="Primary Beneficiary"
-                            placeholder="Enter beneficiary name"
-                            value={formData.beneficiary}
-                            onChange={({ value }) => handleInputChange('beneficiary', value)}
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <DxcTextInput
-                            label="Number of Claims (Last 3 Years)"
-                            placeholder="Enter number of claims"
-                            value={formData.claimsCount}
-                            onChange={({ value }) => handleInputChange('claimsCount', value)}
-                          />
-                          <DxcTextarea
-                            label="Loss History Details"
-                            placeholder="Describe any accidents, claims, or losses in the past 3 years"
-                            value={formData.lossHistory}
-                            onChange={({ value }) => handleInputChange('lossHistory', value)}
-                            rows={4}
-                          />
-                        </>
-                      )}
+                      <DxcTextInput
+                        label="Number of Claims (Last 3 Years)"
+                        placeholder="Enter number of claims"
+                        value={formData.claimsCount}
+                        onChange={({ value }) => handleInputChange('claimsCount', value)}
+                      />
+                      <DxcTextarea
+                        label="Loss History Details"
+                        placeholder="Describe any accidents, claims, or losses in the past 3 years"
+                        value={formData.lossHistory}
+                        onChange={({ value }) => handleInputChange('lossHistory', value)}
+                        rows={4}
+                      />
                     </DxcFlex>
                   </div>
                 )}

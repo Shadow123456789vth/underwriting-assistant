@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DxcApplicationLayout, DxcFlex, DxcTypography, DxcSelect } from '@dxc-technology/halstack-react';
+import { DxcApplicationLayout, DxcFlex, DxcTypography } from '@dxc-technology/halstack-react';
 import Dashboard from './components/Dashboard/Dashboard';
 import UnderwritingWorkbench from './components/UnderwritingWorkbench/UnderwritingWorkbench';
 import SubmissionIntake from './components/SubmissionIntake/SubmissionIntake';
@@ -9,7 +9,6 @@ function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [sidenavExpanded, setSidenavExpanded] = useState(true);
-  const [productType, setProductType] = useState('P&C');
 
   const user = {
     name: 'Sarah Chen',
@@ -28,21 +27,16 @@ function App() {
     }
   };
 
-  const productTypeOptions = [
-    { label: 'P&C', value: 'P&C' },
-    { label: 'Life & Annuity', value: 'Life & Annuity' }
-  ];
-
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard onSubmissionSelect={handleSubmissionSelect} productType={productType} />;
+        return <Dashboard onSubmissionSelect={handleSubmissionSelect} />;
       case 'workbench':
-        return <UnderwritingWorkbench submission={selectedSubmission} productType={productType} />;
+        return <UnderwritingWorkbench submission={selectedSubmission} />;
       case 'intake':
-        return <SubmissionIntake productType={productType} />;
+        return <SubmissionIntake />;
       default:
-        return <Dashboard onSubmissionSelect={handleSubmissionSelect} productType={productType} />;
+        return <Dashboard onSubmissionSelect={handleSubmissionSelect} />;
     }
   };
 
@@ -74,17 +68,7 @@ function App() {
           appTitle="Underwriter Assistant"
           sideContent={(isResponsive) =>
             isResponsive ? null : (
-              <DxcFlex gap="var(--spacing-gap-l)" alignItems="center">
-                <div style={{ minWidth: '180px' }}>
-                  <DxcSelect
-                    label="Product Type"
-                    options={productTypeOptions}
-                    value={productType}
-                    onChange={setProductType}
-                    margin="none"
-                    size="small"
-                  />
-                </div>
+              <DxcFlex gap="var(--spacing-gap-m)" alignItems="center">
                 <DxcFlex direction="column" gap="var(--spacing-gap-none)">
                   <DxcTypography>{user.name}</DxcTypography>
                   <DxcTypography

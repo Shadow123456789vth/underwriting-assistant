@@ -12,19 +12,17 @@ import {
   DxcPaginator,
   DxcInset,
 } from '@dxc-technology/halstack-react';
-import { getSubmissionsByProductType, getStatusColor, getPriorityColor } from '../../data/mockSubmissions';
+import { pcSubmissions, getStatusColor, getPriorityColor } from '../../data/mockSubmissions';
 import './Dashboard.css';
 
-const Dashboard = ({ onSubmissionSelect, productType }) => {
+const Dashboard = ({ onSubmissionSelect }) => {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [searchValue, setSearchValue] = useState('');
   const [isGridView, setIsGridView] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Get submissions based on product type
-  const submissions = useMemo(() => {
-    return getSubmissionsByProductType(productType);
-  }, [productType]);
+  // Use P&C Commercial Auto submissions only
+  const submissions = pcSubmissions;
 
   // Calculate metrics
   const metrics = useMemo(() => {
@@ -57,23 +55,13 @@ const Dashboard = ({ onSubmissionSelect, productType }) => {
   const filteredSubmissions = useMemo(() => {
     let filtered = [...submissions];
 
-    // Filter by tab based on product type
-    if (productType === 'Life & Annuity') {
-      if (activeTabIndex === 1) {
-        filtered = filtered.filter(s => s.lineOfBusiness.includes('Term'));
-      } else if (activeTabIndex === 2) {
-        filtered = filtered.filter(s => s.lineOfBusiness.includes('Whole'));
-      } else if (activeTabIndex === 3) {
-        filtered = filtered.filter(s => s.lineOfBusiness.includes('Universal'));
-      }
-    } else if (productType === 'P&C') {
-      if (activeTabIndex === 1) {
-        filtered = filtered.filter(s => s.coverageType === 'Fleet');
-      } else if (activeTabIndex === 2) {
-        filtered = filtered.filter(s => s.coverageType === 'For-Hire');
-      } else if (activeTabIndex === 3) {
-        filtered = filtered.filter(s => s.coverageType === 'Business Use');
-      }
+    // Filter by tab - P&C Commercial Auto coverage types
+    if (activeTabIndex === 1) {
+      filtered = filtered.filter(s => s.coverageType === 'Fleet');
+    } else if (activeTabIndex === 2) {
+      filtered = filtered.filter(s => s.coverageType === 'For-Hire');
+    } else if (activeTabIndex === 3) {
+      filtered = filtered.filter(s => s.coverageType === 'Business Use');
     }
 
     // Filter by search
@@ -86,7 +74,7 @@ const Dashboard = ({ onSubmissionSelect, productType }) => {
     }
 
     return filtered;
-  }, [submissions, activeTabIndex, searchValue, productType]);
+  }, [submissions, activeTabIndex, searchValue]);
 
   // Paginate submissions
   const paginatedSubmissions = useMemo(() => {
@@ -400,61 +388,30 @@ const Dashboard = ({ onSubmissionSelect, productType }) => {
               >
                 <div />
               </DxcTabs.Tab>
-              {productType === 'Life & Annuity' ? (
-                <>
-                  <DxcTabs.Tab
-                    label="Term Life"
-                    icon="favorite"
-                    active={activeTabIndex === 1}
-                    onClick={() => setActiveTabIndex(1)}
-                  >
-                    <div />
-                  </DxcTabs.Tab>
-                  <DxcTabs.Tab
-                    label="Whole Life"
-                    icon="account_balance"
-                    active={activeTabIndex === 2}
-                    onClick={() => setActiveTabIndex(2)}
-                  >
-                    <div />
-                  </DxcTabs.Tab>
-                  <DxcTabs.Tab
-                    label="Universal Life"
-                    icon="trending_up"
-                    active={activeTabIndex === 3}
-                    onClick={() => setActiveTabIndex(3)}
-                  >
-                    <div />
-                  </DxcTabs.Tab>
-                </>
-              ) : (
-                <>
-                  <DxcTabs.Tab
-                    label="Fleet"
-                    icon="local_shipping"
-                    active={activeTabIndex === 1}
-                    onClick={() => setActiveTabIndex(1)}
-                  >
-                    <div />
-                  </DxcTabs.Tab>
-                  <DxcTabs.Tab
-                    label="For-Hire"
-                    icon="local_taxi"
-                    active={activeTabIndex === 2}
-                    onClick={() => setActiveTabIndex(2)}
-                  >
-                    <div />
-                  </DxcTabs.Tab>
-                  <DxcTabs.Tab
-                    label="Business Use"
-                    icon="business"
-                    active={activeTabIndex === 3}
-                    onClick={() => setActiveTabIndex(3)}
-                  >
-                    <div />
-                  </DxcTabs.Tab>
-                </>
-              )}
+              <DxcTabs.Tab
+                label="Fleet"
+                icon="local_shipping"
+                active={activeTabIndex === 1}
+                onClick={() => setActiveTabIndex(1)}
+              >
+                <div />
+              </DxcTabs.Tab>
+              <DxcTabs.Tab
+                label="For-Hire"
+                icon="local_taxi"
+                active={activeTabIndex === 2}
+                onClick={() => setActiveTabIndex(2)}
+              >
+                <div />
+              </DxcTabs.Tab>
+              <DxcTabs.Tab
+                label="Business Use"
+                icon="business"
+                active={activeTabIndex === 3}
+                onClick={() => setActiveTabIndex(3)}
+              >
+                <div />
+              </DxcTabs.Tab>
             </DxcTabs>
 
             {/* Toolbar */}
@@ -567,19 +524,15 @@ const Dashboard = ({ onSubmissionSelect, productType }) => {
                         <DxcTypography fontSize="12px" color="var(--color-fg-neutral-dark)">
                           {submission.lineOfBusiness}
                         </DxcTypography>
-                        {productType === 'P&C' && submission.coverageType && (
-                          <>
-                            <div style={{
-                              width: "6px",
-                              height: "6px",
-                              borderRadius: "50%",
-                              backgroundColor: "var(--color-fg-neutral-strong)"
-                            }} />
-                            <DxcTypography fontSize="12px" color="var(--color-fg-neutral-dark)">
-                              {submission.coverageType}
-                            </DxcTypography>
-                          </>
-                        )}
+                        <div style={{
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          backgroundColor: "var(--color-fg-neutral-strong)"
+                        }} />
+                        <DxcTypography fontSize="12px" color="var(--color-fg-neutral-dark)">
+                          {submission.coverageType}
+                        </DxcTypography>
                         <div style={{
                           width: "6px",
                           height: "6px",
@@ -589,19 +542,15 @@ const Dashboard = ({ onSubmissionSelect, productType }) => {
                         <DxcTypography fontSize="12px" color="var(--color-fg-neutral-dark)">
                           ${(submission.coverageAmount / 1000).toLocaleString()}K
                         </DxcTypography>
-                        {productType === 'P&C' && submission.fleetSize && (
-                          <>
-                            <div style={{
-                              width: "6px",
-                              height: "6px",
-                              borderRadius: "50%",
-                              backgroundColor: "var(--color-fg-neutral-strong)"
-                            }} />
-                            <DxcTypography fontSize="12px" color="var(--color-fg-neutral-dark)">
-                              Fleet: {submission.fleetSize} vehicles
-                            </DxcTypography>
-                          </>
-                        )}
+                        <div style={{
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          backgroundColor: "var(--color-fg-neutral-strong)"
+                        }} />
+                        <DxcTypography fontSize="12px" color="var(--color-fg-neutral-dark)">
+                          Fleet: {submission.fleetSize} vehicles
+                        </DxcTypography>
                         <div style={{
                           width: "6px",
                           height: "6px",
