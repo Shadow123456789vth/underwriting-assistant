@@ -1,1 +1,98 @@
-/* Minimal Dashboard styles */
+/* Dashboard Styles - Bloom Design */
+
+.metric-card {
+  background-color: var(--color-bg-neutral-lightest);
+  border-radius: var(--border-radius-m);
+  box-shadow: var(--shadow-mid-02);
+  padding: var(--spacing-padding-m);
+  min-width: 120px;
+}
+
+.metric-card-highlight {
+  background: linear-gradient(135deg, #4DD0E1 0%, #0095FF 100%);
+  border-radius: var(--border-radius-m);
+  box-shadow: var(--shadow-mid-02);
+  padding: var(--spacing-padding-m);
+  min-width: 160px;
+}
+
+.metric-card-warning {
+  background: linear-gradient(135deg, #FFA726 0%, #FF6B00 100%);
+  border-radius: var(--border-radius-m);
+  box-shadow: var(--shadow-mid-02);
+  padding: var(--spacing-padding-m);
+  min-width: 160px;
+}
+
+.metric-card-success {
+  background: linear-gradient(135deg, #66BB6A 0%, #24A148 100%);
+  border-radius: var(--border-radius-m);
+  box-shadow: var(--shadow-mid-02);
+  padding: var(--spacing-padding-m);
+  min-width: 160px;
+}
+
+.metric-card-error {
+  background: linear-gradient(135deg, #EF5350 0%, #D0021B 100%);
+  border-radius: var(--border-radius-m);
+  box-shadow: var(--shadow-mid-02);
+  padding: var(--spacing-padding-m);
+  min-width: 160px;
+}
+
+.submission-card {
+  background-color: var(--color-bg-neutral-lightest);
+  border: 1px solid var(--color-border-neutral-lighter);
+  border-radius: var(--border-radius-m);
+  padding: var(--spacing-padding-m);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submission-card:hover {
+  box-shadow: var(--shadow-mid-02);
+  border-color: #0095FF;
+}
+
+.view-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--color-fg-neutral-stronger);
+  cursor: pointer;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  padding: var(--spacing-padding-xs) var(--spacing-padding-s);
+  border-radius: var(--border-radius-s);
+  transition: all 0.2s ease;
+}
+
+.view-toggle-btn.active {
+  color: #0095FF;
+  font-weight: 600;
+}
+
+.view-toggle-btn:hover {
+  background-color: var(--color-bg-neutral-lighter);
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--color-fg-neutral-stronger);
+}
+
+.icon-btn:hover {
+  background-color: var(--color-bg-neutral-lighter);
+  color: #0095FF;
+}
+
+.icon-btn .material-icons {
+  font-size: 20px;
+}
