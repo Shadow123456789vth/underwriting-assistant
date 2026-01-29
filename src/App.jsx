@@ -59,14 +59,13 @@ function App() {
     {
       label: "Dashboard",
       icon: "dashboard",
-      selected: currentView === 'dashboard',
+      selected: currentView === 'dashboard' && currentView !== 'intake',
       onClick: () => handleNavigationClick('dashboard')
     },
     {
       label: "Submissions",
       icon: "folder_open",
-      selected: currentView === 'submissions' || currentView === 'intake' || currentView === 'dashboard',
-      onClick: () => handleNavigationClick('dashboard'),
+      selected: currentView === 'intake',
       items: [
         {
           label: "New Submission",
