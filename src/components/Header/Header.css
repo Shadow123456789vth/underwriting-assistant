@@ -1,0 +1,39 @@
+.app-header {
+  background-color: var(--color-bg-neutral-lightest);
+  border-bottom: 2px solid var(--color-border-neutral-lighter);
+  padding: var(--spacing-padding-m) var(--spacing-padding-l);
+  box-shadow: var(--shadow-mid-01);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+}
+
+.header-logo {
+  height: 40px;
+  width: auto;
+}
+
+.bloom-icon svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-blue-600, #0095FF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white, white);
+}
+
+.user-avatar .material-icons {
+  font-size: 32px;
+}
+
+.text-logo {
+  display: flex;
+  align-items: center;
+}
