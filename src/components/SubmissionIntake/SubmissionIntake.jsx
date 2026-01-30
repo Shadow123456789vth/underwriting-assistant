@@ -25,37 +25,37 @@ const SubmissionIntake = () => {
   const [supportDocs, setSupportDocs] = useState([]);
   const [extractedData, setExtractedData] = useState({
     // Named Insured Information
-    namedInsured: 'ABC Trucking LLC',
-    mailingAddress: '123 Main Street',
-    city: 'Springfield',
-    state: 'IL',
-    zipCode: '627', // Invalid - too short
-    businessType: 'Trucking',
-    yearsInBusiness: '15',
+    namedInsured: 'ABC Moving Services, Inc.',
+    mailingAddress: '33 Inner Belt Rd',
+    city: 'Somerville',
+    state: 'MA',
+    zipCode: '02143',
+    businessType: 'Moving & Storage',
+    yearsInBusiness: '46',
 
     // Coverage Information
-    coverageType: 'Commercial Auto Liability',
-    effectiveDate: '2026-03-01',
-    expirationDate: '2027-03-01',
-    limitsOfLiability: '$1,000,000',
+    coverageType: 'Business Auto',
+    effectiveDate: '2026-01-01',
+    expirationDate: '2027-01-01',
+    limitsOfLiability: '$1,000,000 Combined Single Limit',
 
     // Fleet Information
-    fleetSize: '45',
-    vehicleTypes: '35 Tractors, 10 Box Trucks',
-    driversCount: '52',
-    radiusOfOperation: 'Long Haul (500+ miles)',
-    cargoType: 'General Freight',
+    fleetSize: '26',
+    vehicleTypes: 'Vans (20), Trucks (6)',
+    driversCount: '51',
+    radiusOfOperation: 'Mostly Local',
+    cargoType: 'Moving - Computer firms, hospitals, professional offices',
 
     // Loss History
-    priorCarrier: 'State Farm', // Low confidence
-    priorPolicyNumber: 'SF-1234567',
-    claimsLast3Years: '3',
-    totalLossAmount: '$85,000',
+    priorCarrier: 'MAPFRE Insurance Group', // Low confidence
+    priorPolicyNumber: 'Renewal',
+    claimsLast3Years: 'See attached loss runs',
+    totalLossAmount: 'See attached loss runs',
   });
   const [validationErrors, setValidationErrors] = useState({
-    zipCode: 'Invalid Zip Code',
+    numberOfEmployees: 'Value may be inconsistent - form shows 67 employees but driver list shows 51 drivers',
   });
-  const [lowConfidenceFields, setLowConfidenceFields] = useState(['priorCarrier']);
+  const [lowConfidenceFields, setLowConfidenceFields] = useState(['businessDescription', 'totalLossAmount']);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showProcessingBanner, setShowProcessingBanner] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -66,7 +66,7 @@ const SubmissionIntake = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
 
-  const submissionId = '00123224';
+  const submissionId = 'ABCMOVI-01';
 
   // Mock AI extraction validation
   const validationSummary = useMemo(() => {
