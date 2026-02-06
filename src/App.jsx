@@ -46,6 +46,8 @@ function App() {
     switch (currentView) {
       case 'dashboard':
         return <Dashboard onSubmissionSelect={handleSubmissionSelect} />;
+      case 'submissions':
+        return <Dashboard onSubmissionSelect={handleSubmissionSelect} />;
       case 'workbench':
         return <UnderwritingWorkbench submission={selectedSubmission} />;
       case 'intake':
@@ -59,21 +61,20 @@ function App() {
     {
       label: "Dashboard",
       icon: "dashboard",
-      selected: currentView === 'dashboard' && currentView !== 'intake',
+      selected: currentView === 'dashboard',
       onClick: () => handleNavigationClick('dashboard')
     },
     {
       label: "Submissions",
       icon: "assignment",
+      selected: currentView === 'submissions',
+      onClick: () => handleNavigationClick('submissions')
+    },
+    {
+      label: "New Submission",
+      icon: "note_add",
       selected: currentView === 'intake',
-      items: [
-        {
-          label: "New Submission",
-          icon: "note_add",
-          selected: currentView === 'intake',
-          onClick: () => handleNavigationClick('intake')
-        }
-      ]
+      onClick: () => handleNavigationClick('intake')
     },
     {
       label: "Quotes",

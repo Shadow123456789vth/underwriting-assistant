@@ -1,4 +1,12 @@
-/* Progress Stepper */
+/* ─── Step Content Container (white card for all steps) ─────────────────── */
+.step-content-container {
+  background-color: var(--color-bg-neutral-lightest, #ffffff);
+  border-radius: var(--border-radius-m);
+  box-shadow: var(--shadow-mid-02);
+  padding: var(--spacing-padding-l);
+}
+
+/* ─── Progress Stepper ──────────────────────────────────────────────────── */
 .progress-stepper {
   display: flex;
   align-items: center;
@@ -36,13 +44,13 @@
 }
 
 .step-indicator.completed {
-  background-color: var(--color-green-600, #4CAF50);
-  color: var(--color-white, white);
+  background-color: #37A526;
+  color: white;
 }
 
 .step-indicator.active {
-  background-color: var(--color-blue-600, #0095FF);
-  color: var(--color-white, white);
+  background-color: #1B75BB;
+  color: white;
 }
 
 .step-indicator.pending {
@@ -58,7 +66,7 @@
   margin-top: -24px;
 }
 
-/* Upload Area */
+/* ─── Upload Area ───────────────────────────────────────────────────────── */
 .upload-area {
   border: 2px dashed var(--color-border-neutral-lighter);
   border-radius: var(--border-radius-m);
@@ -69,8 +77,8 @@
 }
 
 .upload-area:hover {
-  border-color: var(--color-blue-600, #0095FF);
-  background-color: var(--color-blue-50, #F0F8FF);
+  border-color: #1B75BB;
+  background-color: #E8F4FD;
 }
 
 .upload-label {
@@ -81,17 +89,19 @@
   cursor: pointer;
 }
 
-/* Document Table */
+/* ─── Document Table (grid design pattern) ──────────────────────────────── */
 .document-table {
   width: 100%;
   border-collapse: collapse;
   background-color: var(--color-bg-neutral-lightest);
   border-radius: var(--border-radius-m);
   overflow: hidden;
+  border: 1px solid var(--color-border-neutral-lighter);
 }
 
 .document-table thead {
-  background-color: var(--color-bg-neutral-lighter);
+  background-color: #1B75BB;
+  color: white;
 }
 
 .document-table th {
@@ -99,7 +109,6 @@
   text-align: left;
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-scale-02);
-  color: var(--color-fg-neutral-stronger);
   border-bottom: 1px solid var(--color-border-neutral-lighter);
 }
 
@@ -132,20 +141,19 @@
 
 .icon-btn-small:hover {
   background-color: var(--color-bg-neutral-light);
-  color: var(--color-red-600, #D0021B);
+  color: #D0021B;
 }
 
 .icon-btn-small .material-icons {
   font-size: 18px;
 }
 
-/* Processing Banner */
+/* ─── Processing Banner ─────────────────────────────────────────────────── */
 .processing-banner {
-  background-color: var(--color-blue-50, #E5F4FF);
-  border: 1px solid var(--color-blue-600, #0095FF);
+  background-color: #E8F4FD;
+  border: 1px solid #1B75BB;
   border-radius: var(--border-radius-m);
   padding: var(--spacing-padding-m);
-  margin-bottom: var(--spacing-gap-m);
 }
 
 .close-banner-btn {
@@ -164,24 +172,32 @@
   color: var(--color-fg-neutral-darkest);
 }
 
-/* Validation Warning */
-.validation-warning {
-  background-color: var(--color-orange-50, #FFF4E5);
-  border: 1px solid var(--color-orange-600, #FF6B00);
+/* ─── Separate Alerts (Step 3) ──────────────────────────────────────────── */
+.alert-error {
+  background-color: #FFF0F0;
+  border: 1px solid #D0021B;
+  border-left: 4px solid #D0021B;
   border-radius: var(--border-radius-m);
   padding: var(--spacing-padding-m);
-  margin-bottom: var(--spacing-gap-m);
 }
 
-/* Form Section */
-.form-section {
+.alert-low-confidence {
+  background-color: #FFF8E1;
+  border: 1px solid #F6921E;
+  border-left: 4px solid #F6921E;
+  border-radius: var(--border-radius-m);
   padding: var(--spacing-padding-m);
+}
+
+/* ─── Form Section ──────────────────────────────────────────────────────── */
+.form-section {
+  padding: var(--spacing-padding-l);
   background-color: var(--color-bg-neutral-lightest);
   border-radius: var(--border-radius-m);
   border: 1px solid var(--color-border-neutral-lighter);
 }
 
-/* Field Indicators */
+/* ─── Field Indicators ──────────────────────────────────────────────────── */
 .field-indicator {
   position: absolute;
   right: -28px;
@@ -194,22 +210,22 @@
 }
 
 .field-indicator.error {
-  color: var(--color-red-600, #D0021B);
+  color: #D0021B;
 }
 
 .field-indicator.warning {
-  color: var(--color-orange-600, #FF6B00);
+  color: #F6921E;
 }
 
 .confidence-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: var(--color-orange-600, #FF6B00);
+  background-color: #F6921E;
   display: inline-block;
 }
 
-/* Side-by-Side Layout */
+/* ─── Side-by-Side Layout ───────────────────────────────────────────────── */
 .extraction-container {
   width: 100%;
 }
@@ -226,7 +242,7 @@
   gap: var(--spacing-gap-l);
 }
 
-/* Document Viewer */
+/* ─── Document Viewer ───────────────────────────────────────────────────── */
 .document-viewer {
   position: sticky;
   top: var(--spacing-gap-l);
@@ -245,8 +261,8 @@
   overflow: auto;
 }
 
-/* View Toggle Button */
-.view-toggle-btn {
+/* ─── View Source Button ────────────────────────────────────────────────── */
+.view-source-btn {
   background: var(--color-bg-neutral-lightest);
   border: 1px solid var(--color-border-neutral-medium);
   color: var(--color-fg-neutral-stronger);
@@ -261,33 +277,76 @@
   gap: var(--spacing-gap-xs);
 }
 
-.view-toggle-btn:hover {
-  border-color: var(--color-blue-600, #0095FF);
-  color: var(--color-blue-600, #0095FF);
+.view-source-btn:hover {
+  border-color: #1B75BB;
+  color: #1B75BB;
 }
 
-.view-toggle-btn.active {
-  background-color: var(--color-blue-600, #0095FF);
-  color: var(--color-white, white);
-  border-color: var(--color-blue-600, #0095FF);
+.view-source-btn.active {
+  background-color: #1B75BB;
+  color: white;
+  border-color: #1B75BB;
 }
 
-/* Ask to Edit Floating Toolbar */
-.ask-to-edit-toolbar {
-  position: fixed;
-  bottom: var(--spacing-gap-l);
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--color-bg-neutral-lightest);
-  border: 2px solid var(--color-blue-600, #0095FF);
+/* ─── Step 4: Submission Checklist ──────────────────────────────────────── */
+.submission-checklist {
+  background-color: #F8F9FA;
+  border: 1px solid var(--color-border-neutral-lighter);
+  border-radius: var(--border-radius-m);
+  padding: var(--spacing-padding-l);
+}
+
+/* ─── Step 4: Review Cards ──────────────────────────────────────────────── */
+.review-card {
+  border: 1px solid var(--color-border-neutral-lighter);
+  border-radius: var(--border-radius-m);
+  overflow: hidden;
+}
+
+.review-card-header {
+  background-color: #F8F9FA;
+  padding: var(--spacing-padding-m) var(--spacing-padding-l);
+  border-bottom: 1px solid var(--color-border-neutral-lighter);
+}
+
+.review-card-body {
+  padding: var(--spacing-padding-l);
+}
+
+.review-row {
+  display: flex;
+  align-items: baseline;
+  padding: var(--spacing-padding-xs) 0;
+  border-bottom: 1px solid #f0f0f0;
+  gap: var(--spacing-gap-l);
+}
+
+.review-row:last-child {
+  border-bottom: none;
+}
+
+.review-label {
+  flex: 0 0 200px;
+  font-size: var(--font-scale-02, 0.875rem);
+  color: #808285;
+  font-weight: 500;
+}
+
+.review-value {
+  flex: 1;
+  font-size: var(--font-scale-02, 0.875rem);
+  color: #333333;
+}
+
+/* ─── Step 4: Action Bar ────────────────────────────────────────────────── */
+.action-bar {
+  background-color: #F8F9FA;
+  border: 1px solid var(--color-border-neutral-lighter);
   border-radius: var(--border-radius-m);
   padding: var(--spacing-padding-m) var(--spacing-padding-l);
-  box-shadow: var(--shadow-mid-02);
-  z-index: 1000;
-  min-width: 400px;
 }
 
-/* Zoom Controls */
+/* ─── Zoom Controls ─────────────────────────────────────────────────────── */
 .zoom-btn {
   background: var(--color-bg-neutral-lightest);
   border: 1px solid var(--color-border-neutral-medium);
@@ -304,9 +363,9 @@
 }
 
 .zoom-btn:hover:not(:disabled) {
-  background-color: var(--color-blue-600, #0095FF);
-  color: var(--color-white, white);
-  border-color: var(--color-blue-600, #0095FF);
+  background-color: #1B75BB;
+  color: white;
+  border-color: #1B75BB;
 }
 
 .zoom-btn:disabled {
