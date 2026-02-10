@@ -149,15 +149,19 @@ const UnderwritingWorkbench = ({ submission }) => {
                               <span className="material-icons-outlined risk-row-icon" style={{ color: '#D02E2E' }}>warning</span>
                               <DxcFlex direction="column" gap="2px" style={{ flex: 1 }}>
                                 <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#D02E2E">
-                                  {flag.title}
+                                  {typeof flag === 'string' ? flag : flag.title}
                                 </DxcTypography>
-                                <DxcTypography fontSize="font-scale-01" color="#666666">
-                                  {flag.description}
-                                </DxcTypography>
+                                {typeof flag === 'object' && flag.description && (
+                                  <DxcTypography fontSize="font-scale-01" color="#666666">
+                                    {flag.description}
+                                  </DxcTypography>
+                                )}
                               </DxcFlex>
-                              <span className={`risk-severity-pill risk-severity-${flag.severity.toLowerCase()}`}>
-                                {flag.severity}
-                              </span>
+                              {typeof flag === 'object' && flag.severity && (
+                                <span className={`risk-severity-pill risk-severity-${flag.severity.toLowerCase()}`}>
+                                  {flag.severity}
+                                </span>
+                              )}
                             </div>
                           ))}
                         </DxcFlex>
@@ -176,11 +180,13 @@ const UnderwritingWorkbench = ({ submission }) => {
                               <span className="material-icons-outlined risk-row-icon" style={{ color: '#37A526' }}>check_circle</span>
                               <DxcFlex direction="column" gap="2px" style={{ flex: 1 }}>
                                 <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#37A526">
-                                  {factor.title}
+                                  {typeof factor === 'string' ? factor : factor.title}
                                 </DxcTypography>
-                                <DxcTypography fontSize="font-scale-01" color="#666666">
-                                  {factor.description}
-                                </DxcTypography>
+                                {typeof factor === 'object' && factor.description && (
+                                  <DxcTypography fontSize="font-scale-01" color="#666666">
+                                    {factor.description}
+                                  </DxcTypography>
+                                )}
                               </DxcFlex>
                             </div>
                           ))}
@@ -208,20 +214,14 @@ const UnderwritingWorkbench = ({ submission }) => {
                                   borderBottom: index < submission.aiRecommendations.comparableRisks.length - 1 ? '1px solid #E0E0E0' : 'none'
                                 }}>
                                   <DxcTypography fontSize="font-scale-02" color="#333333" fontWeight="font-weight-medium">
-                                    {risk.name}
+                                    {risk.account || risk.name}
                                   </DxcTypography>
                                   <DxcFlex gap="var(--spacing-gap-m)" style={{ marginTop: '4px' }}>
                                     <DxcTypography fontSize="font-scale-01" color="#666666">
-                                      Revenue: {risk.revenue}
-                                    </DxcTypography>
-                                    <DxcTypography fontSize="font-scale-01" color="#666666">
-                                      Fleet: {risk.fleet}
-                                    </DxcTypography>
-                                    <DxcTypography fontSize="font-scale-01" color="#666666">
-                                      Loss Ratio: {risk.lossRatio}
+                                      Loss Ratio: {typeof risk.lossRatio === 'number' ? (risk.lossRatio * 100).toFixed(0) + '%' : risk.lossRatio}
                                     </DxcTypography>
                                     <DxcTypography fontSize="font-scale-01" color="#37A526" fontWeight="font-weight-semibold">
-                                      Premium: {risk.premium}
+                                      Premium: ${typeof risk.premium === 'number' ? risk.premium.toLocaleString() : risk.premium}
                                     </DxcTypography>
                                   </DxcFlex>
                                 </div>
