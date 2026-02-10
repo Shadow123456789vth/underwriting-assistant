@@ -6,6 +6,50 @@
   box-sizing: border-box;
 }
 
+/* ===================================
+   BLUE THEME OVERRIDES (NO PURPLE)
+   Overrides Halstack's default purple theme with Bloom Insurance blue
+   =================================== */
+:root {
+  /* Primary Colors - Blue instead of Purple */
+  --color-fg-primary-base: #1B75BB !important;
+  --color-fg-primary-lightest: #E5F1FA !important;
+  --color-fg-primary-lighter: #B3D9F0 !important;
+  --color-fg-primary-light: #66AED9 !important;
+  --color-fg-primary-medium: #1B75BB !important;
+  --color-fg-primary-strong: #155E96 !important;
+  --color-fg-primary-stronger: #104771 !important;
+  --color-fg-primary-strongest: #0A2F4C !important;
+
+  --color-bg-primary-base: #1B75BB !important;
+  --color-bg-primary-lightest: #E5F1FA !important;
+  --color-bg-primary-lighter: #B3D9F0 !important;
+  --color-bg-primary-light: #66AED9 !important;
+  --color-bg-primary-medium: #1B75BB !important;
+  --color-bg-primary-strong: #155E96 !important;
+  --color-bg-primary-stronger: #104771 !important;
+  --color-bg-primary-strongest: #0A2F4C !important;
+
+  --color-border-primary-base: #1B75BB !important;
+  --color-border-primary-lightest: #E5F1FA !important;
+  --color-border-primary-lighter: #B3D9F0 !important;
+  --color-border-primary-light: #66AED9 !important;
+  --color-border-primary-medium: #1B75BB !important;
+  --color-border-primary-strong: #155E96 !important;
+  --color-border-primary-stronger: #104771 !important;
+  --color-border-primary-strongest: #0A2F4C !important;
+
+  /* Info Colors - Bright Blue */
+  --color-fg-info-base: #00ADEE !important;
+  --color-bg-info-base: #00ADEE !important;
+  --color-border-info-base: #00ADEE !important;
+
+  /* Accent Colors - Keep existing */
+  --color-fg-success-base: #37A526 !important;
+  --color-fg-warning-base: #FFA500 !important;
+  --color-fg-error-base: #D02E2E !important;
+}
+
 body {
   font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -41,4 +85,21 @@ code {
 #root {
   width: 100%;
   min-height: 100vh;
+}
+
+/* Force blue on any Halstack components that might use purple */
+button[mode="primary"],
+.dxc-button-primary,
+[class*="primary"] {
+  --color-primary: #1B75BB !important;
+}
+
+/* Override any purple hex codes if they exist */
+*[style*="#6F2C91"],
+*[style*="#5F249F"],
+*[style*="rgb(111, 44, 145)"],
+*[style*="purple"] {
+  color: #1B75BB !important;
+  background-color: #1B75BB !important;
+  border-color: #1B75BB !important;
 }
