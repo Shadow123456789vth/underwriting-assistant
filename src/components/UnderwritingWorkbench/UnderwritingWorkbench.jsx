@@ -19,9 +19,9 @@ import './UnderwritingWorkbench.css';
 const UnderwritingWorkbench = ({ submission }) => {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [uploadedDocs, setUploadedDocs] = useState([
-    { id: 1, name: 'Bldg1.jpg', description: 'Pic of Building', docType: 'Auto Info', uploadedBy: 'John Smith', uploadDate: '01/01/26' },
-    { id: 2, name: 'Home_Inspection.pdf', description: 'Inspection Report', docType: 'Insured Details', uploadedBy: 'Jane Gold', uploadDate: '01/01/26' },
-    { id: 3, name: 'My_Healthcard.png', description: 'Health ID', docType: 'Policy Info', uploadedBy: 'John Smith', uploadDate: '01/01/26' },
+    { id: 1, name: 'Bldg1.jpg', description: 'Pic of Building', docType: 'Auto Info', uploadedBy: 'John Smith', uploadDate: '01/01/2026' },
+    { id: 2, name: 'Home_Inspection.pdf', description: 'Inspection Report', docType: 'Insured Details', uploadedBy: 'Jane Gold', uploadDate: '01/01/2026' },
+    { id: 3, name: 'My_Healthcard.png', description: 'Health ID', docType: 'Policy Info', uploadedBy: 'John Smith', uploadDate: '01/01/2026' },
   ]);
   const [notes, setNotes] = useState([
     { date: '01/02/2026', type: 'Reminder', note: 'Send a note to UW processing team to make sure they have gotten all forms' },
@@ -29,12 +29,12 @@ const UnderwritingWorkbench = ({ submission }) => {
     { date: '12/10/2025', type: 'Task', note: 'Clone policy 123445 for future reference' },
   ]);
   const [messages, setMessages] = useState([
-    { date: '01/02/26', subject: 'Verifying Liability', from: 'person@assuremail.com', message: 'Hello I need to verify a few files for this policy: 1234522' },
-    { date: '11/22/25', subject: 'New System Policy', from: 'person@assuremail.com', message: 'We\'re creating a new policy in the system' },
-    { date: '10/19/25', subject: 'Comprehensive Deductibles', from: 'person@assuremail.com', message: 'A question about Comprehensive Deductibles' },
-    { date: '10/01/25', subject: 'Inquiry About Policy Changes', from: 'person@assuremail.com', message: 'We\'re creating a new policy in the system' },
-    { date: '09/08/25', subject: 'Verifying Financial Coverage', from: 'person@assuremail.com', message: 'A question about Comprehensive Deductibles' },
-    { date: '08/03/25', subject: 'Adding a New Vehicle', from: 'person@assuremail.com', message: 'Hello I need to verify a few files for this policy: 1234522' },
+    { date: '01/02/2026', subject: 'Verifying Liability', from: 'person@assuremail.com', message: 'Hello I need to verify a few files for this policy: 1234522' },
+    { date: '11/22/2025', subject: 'New System Policy', from: 'person@assuremail.com', message: 'We\'re creating a new policy in the system' },
+    { date: '10/19/2025', subject: 'Comprehensive Deductibles', from: 'person@assuremail.com', message: 'A question about Comprehensive Deductibles' },
+    { date: '10/01/2025', subject: 'Inquiry About Policy Changes', from: 'person@assuremail.com', message: 'We\'re creating a new policy in the system' },
+    { date: '09/08/2025', subject: 'Verifying Financial Coverage', from: 'person@assuremail.com', message: 'A question about Comprehensive Deductibles' },
+    { date: '08/03/2025', subject: 'Adding a New Vehicle', from: 'person@assuremail.com', message: 'Hello I need to verify a few files for this policy: 1234522' },
   ]);
   const [activeMessageTab, setActiveMessageTab] = useState(0);
   const [showValidationModal, setShowValidationModal] = useState(false);
@@ -979,7 +979,7 @@ const UnderwritingWorkbench = ({ submission }) => {
               </DxcFlex>
 
               <DxcTypography fontSize="font-scale-02" color="#808285">
-                Supported formats include pdf, doc, docx, xsl, xslx, jpg, and png
+                Supported formats include pdf, doc, docx, xls, xlsx, jpg, and png
               </DxcTypography>
 
               <div className="upload-section">
@@ -991,11 +991,13 @@ const UnderwritingWorkbench = ({ submission }) => {
                   <DxcTypography fontSize="font-scale-02" color="#808285">
                     or drop file
                   </DxcTypography>
-                  <DxcTextInput
-                    label="Description"
-                    placeholder="Describe the document"
-                    style={{ flex: 1 }}
-                  />
+                  <div style={{ flex: 1 }}>
+                    <DxcTextInput
+                      label="Description"
+                      placeholder="Describe the document"
+                      size="fillParent"
+                    />
+                  </div>
                   <DxcSelect
                     label="Document Type"
                     placeholder="Choose file type"
@@ -1006,12 +1008,14 @@ const UnderwritingWorkbench = ({ submission }) => {
                     ]}
                   />
                 </DxcFlex>
-                <DxcButton
-                  label="+ Add another document"
-                  mode="text"
-                  onClick={() => {}}
-                  style={{ marginTop: 'var(--spacing-gap-s)' }}
-                />
+                <div style={{ marginTop: 'var(--spacing-gap-s)' }}>
+                  <DxcButton
+                    label="Add Another Document"
+                    icon="add"
+                    mode="text"
+                    onClick={() => {}}
+                  />
+                </div>
                 <DxcButton
                   label="Upload Documents"
                   icon="upload"
@@ -1293,7 +1297,8 @@ const UnderwritingWorkbench = ({ submission }) => {
                       </DxcTypography>
                     </DxcFlex>
                     <DxcButton
-                      label="+ Add Note"
+                      label="Add Note"
+                      icon="add"
                       mode="primary"
                       onClick={() => setShowAddNoteModal(true)}
                     />
@@ -1338,7 +1343,8 @@ const UnderwritingWorkbench = ({ submission }) => {
                       </DxcTypography>
                     </DxcFlex>
                     <DxcButton
-                      label="+ New Message"
+                      label="New Message"
+                      icon="add"
                       mode="primary"
                       onClick={() => setShowNewMessageModal(true)}
                     />
@@ -1444,16 +1450,13 @@ const UnderwritingWorkbench = ({ submission }) => {
                 <DxcTextInput
                   label="Subject"
                   placeholder="Subject matter"
+                  size="fillParent"
                 />
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-gap-xs)' }}>
-                  <label style={{
-                    fontSize: 'var(--font-scale-02)',
-                    fontWeight: 'var(--font-weight-semibold)',
-                    color: '#333333'
-                  }}>
-                    Message (Max limit 3000 characters)
-                  </label>
+                  <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
+                    Message (Max 3000 characters)
+                  </DxcTypography>
                   <textarea
                     className="message-textarea"
                     placeholder="Enter your text here..."
@@ -1561,7 +1564,7 @@ const UnderwritingWorkbench = ({ submission }) => {
               <DxcTabs.Tab label="Data Reports" active={activeTabIndex === 4} onClick={() => setActiveTabIndex(4)}><div /></DxcTabs.Tab>
               <DxcTabs.Tab label="Document Upload" active={activeTabIndex === 5} onClick={() => setActiveTabIndex(5)}><div /></DxcTabs.Tab>
               <DxcTabs.Tab label="Quotation" active={activeTabIndex === 6} onClick={() => setActiveTabIndex(6)}><div /></DxcTabs.Tab>
-              <DxcTabs.Tab label="Notes/ Messages" active={activeTabIndex === 7} onClick={() => setActiveTabIndex(7)}><div /></DxcTabs.Tab>
+              <DxcTabs.Tab label="Notes / Messages" active={activeTabIndex === 7} onClick={() => setActiveTabIndex(7)}><div /></DxcTabs.Tab>
               <DxcTabs.Tab label="Actions" active={activeTabIndex === 8} onClick={() => setActiveTabIndex(8)}><div /></DxcTabs.Tab>
             </DxcTabs>
 
@@ -1628,9 +1631,9 @@ const UnderwritingWorkbench = ({ submission }) => {
                 onChange={(value) => setNewNoteType(value)}
               />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-gap-xs)' }}>
-                <label style={{ fontSize: 'var(--font-scale-02)', fontWeight: 'var(--font-weight-semibold)', color: '#333333' }}>
+                <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
                   Note
-                </label>
+                </DxcTypography>
                 <textarea
                   className="message-textarea"
                   placeholder="Enter your text here..."
@@ -1669,9 +1672,9 @@ const UnderwritingWorkbench = ({ submission }) => {
               <DxcTextInput label="To" placeholder="Enter recipient email..." value={newMessageTo} onChange={({ value }) => setNewMessageTo(value)} size="fillParent" />
               <DxcTextInput label="Subject" placeholder="Enter message subject..." value={newMessageSubject} onChange={({ value }) => setNewMessageSubject(value)} size="fillParent" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-gap-xs)' }}>
-                <label style={{ fontSize: 'var(--font-scale-02)', fontWeight: 'var(--font-weight-semibold)', color: '#333333' }}>
+                <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
                   Message
-                </label>
+                </DxcTypography>
                 <textarea
                   className="message-textarea"
                   placeholder="Enter your message here..."

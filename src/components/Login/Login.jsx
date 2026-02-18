@@ -106,7 +106,7 @@ const Login = ({ onLogin }) => {
               {/* Remember Me and Forgot Password */}
               <DxcFlex justifyContent="space-between" alignItems="center">
                 <DxcCheckbox
-                  label="Remember Me (Optional)"
+                  label="Remember Me"
                   checked={formData.rememberMe}
                   onChange={(checked) => handleInputChange('rememberMe', checked)}
                 />

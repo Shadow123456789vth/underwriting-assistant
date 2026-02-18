@@ -64,6 +64,11 @@
   background-color: #FFF0F0;
 }
 
+.risk-row-success {
+  border-left-color: #37A526;
+  background-color: #E8F5E9;
+}
+
 .risk-row-info {
   border-left-color: #1B75BB;
   background-color: #E8F4FD;
@@ -102,6 +107,12 @@
   background-color: #E8F4FD;
   color: #1B75BB;
   border: 1px solid #1B75BB;
+}
+
+.risk-severity-low {
+  background-color: #E8F5E9;
+  color: #37A526;
+  border: 1px solid #37A526;
 }
 
 /* ─── Data Tables ───────────────────────────────────────────────────────── */
@@ -296,17 +307,18 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #1B75BB;
+  color: var(--color-fg-neutral-stronger);
   padding: var(--spacing-padding-xxs);
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--border-radius-s);
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .icon-btn-small:hover {
   background-color: var(--color-bg-neutral-lighter);
+  color: #1B75BB;
 }
 
 /* ─── Message Textarea ─────────────────────────────────────────────────── */
