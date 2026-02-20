@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   DxcHeading,
   DxcFlex,
@@ -12,11 +12,62 @@ import {
   DxcPaginator,
   DxcButton,
   DxcChip,
+  DxcSpinner,
 } from '@dxc-technology/halstack-react';
 import { pcSubmissions, getStatusColor } from '../../data/mockSubmissions';
+import {
+  isConnected,
+  fetchSubmissions,
+  fetchReferrals,
+  fetchAIRecommendations,
+} from '../../services/servicenow';
 import './Dashboard.css';
 
-const Dashboard = ({ onSubmissionSelect }) => {
+// ── Map ServiceNow record → dashboard shape ───────────────────────
+function mapSNSubmission(rec, referralMap, aiMap) {
+  const sysId = rec.sys_id?.value || rec.sys_id;
+  const ref   = referralMap[sysId] || {};
+  const ai    = aiMap[sysId]       || {};
+
+  const isFastTrack = rec.fast_track_eligible === 'true' || rec.fast_track_eligible === true;
+  const isReferral  = ref.required === 'true'            || ref.required === true;
+
+  const fmtDate = (v) => {
+    if (!v) return '';
+    return String(v).split(' ')[0];
+  };
+
+  const statusLabel = rec.status?.display_value || rec.status || '';
+
+  return {
+    sys_id:          sysId,
+    id:              rec.number?.display_value || rec.number || sysId,
+    applicantName:   rec.applicant_name?.display_value || rec.applicant_name || '',
+    status:          statusLabel,
+    lineOfBusiness:  rec.line_of_business?.display_value || rec.line_of_business || '',
+    coverageType:    rec.coverage_type?.display_value    || rec.coverage_type    || '',
+    submittedDate:   fmtDate(rec.submitted_date?.display_value || rec.submitted_date),
+    receivedDate:    fmtDate(rec.received_date?.display_value  || rec.received_date),
+    effectiveDate:   fmtDate(rec.effective_date?.display_value || rec.effective_date),
+    daysInQueue:     parseInt(rec.days_in_queue?.display_value || rec.days_in_queue || 0, 10),
+    primaryState:    rec.primary_state?.display_value || rec.primary_state || '',
+    riskScore:       parseInt(rec.risk_score?.display_value || rec.risk_score || 0, 10),
+    priority:        rec.priority?.display_value || rec.priority || '',
+    routing: {
+      decision:        rec.routing_decision?.display_value || rec.routing_decision || '',
+      reason:          rec.routing_reason?.display_value   || rec.routing_reason   || '',
+      fastTrackEligible: isFastTrack,
+    },
+    referral: {
+      required: isReferral,
+      reason:   ref.reason || '',
+    },
+    aiSuggestedRate: ai.ai_suggested_rate?.display_value || ai.ai_suggested_rate || '',
+    aiConfidence:    ai.ai_confidence?.display_value     || ai.ai_confidence     || '',
+  };
+}
+
+const Dashboard = ({ onSubmissionSelect, snConnected }) => {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [isGridView, setIsGridView] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,30 +75,84 @@ const Dashboard = ({ onSubmissionSelect }) => {
   const [searchValue, setSearchValue] = useState('');
   const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState({
-    quotePolicy: true,
-    dateSubmitted: true,
-    dateReceived: true,
-    effectiveDate: true,
-    lob: true,
-    symbol: true,
-    primaryState: true,
-    applicant: true,
-    transactionStatus: true,
+    quotePolicy: true, dateSubmitted: true, dateReceived: true,
+    effectiveDate: true, lob: true, symbol: true,
+    primaryState: true, applicant: true, transactionStatus: true,
   });
+
+  // ── Live data state ─────────────────────────────────────────────
+  const [liveSubmissions, setLiveSubmissions] = useState(null); // null = not loaded
+  const [loadingData, setLoadingData]         = useState(false);
+  const [dataError, setDataError]             = useState('');
+
   const itemsPerPage = 9;
 
-  const submissions = pcSubmissions;
+  // ── Fetch from ServiceNow when connected ────────────────────────
+  useEffect(() => {
+    if (!isConnected()) return;
 
-  const metrics = useMemo(() => ({
-    totalSubmissions: 12,
-    newSubmissions: 2,
-    quotesRequired: 6,
-    writtenPremiumYTD: 24.8,
-    pendingReview: 7,
-    approvedThisMonth: 42,
-    declinedThisMonth: 7,
-    approvalRate: 87,
-  }), []);
+    setLoadingData(true);
+    setDataError('');
+
+    Promise.all([
+      fetchSubmissions(),
+      fetchReferrals(''),   // fetch all referrals
+      fetchAIRecommendations(''), // fetch all AI recs
+    ])
+      .then(([subRes, refRes, aiRes]) => {
+        const snSubs = subRes.result || [];
+        const snRefs = refRes.result || [];
+        const snAIs  = aiRes.result  || [];
+
+        // Build lookup maps keyed by submission sys_id
+        const referralMap = {};
+        snRefs.forEach(r => {
+          const subId = r.submission?.value || r.submission;
+          if (subId) referralMap[subId] = r;
+        });
+
+        const aiMap = {};
+        snAIs.forEach(a => {
+          const subId = a.submission?.value || a.submission;
+          if (subId) aiMap[subId] = a;
+        });
+
+        setLiveSubmissions(snSubs.map(s => mapSNSubmission(s, referralMap, aiMap)));
+      })
+      .catch(err => setDataError(err.message))
+      .finally(() => setLoadingData(false));
+  }, [snConnected]);
+
+  // ── Use live data if available, else mock ───────────────────────
+  const submissions = liveSubmissions ?? pcSubmissions;
+  const isLive      = liveSubmissions !== null;
+
+  // ── Metrics derived from live data ──────────────────────────────
+  const metrics = useMemo(() => {
+    if (!isLive) return {
+      totalSubmissions: 12, newSubmissions: 2, quotesRequired: 6,
+      writtenPremiumYTD: 24.8, pendingReview: 7,
+      approvedThisMonth: 42, declinedThisMonth: 7, approvalRate: 87,
+    };
+
+    const total    = submissions.length;
+    const newSubs  = submissions.filter(s => /new/i.test(s.status)).length;
+    const pending  = submissions.filter(s => /pending|review/i.test(s.status)).length;
+    const approved = submissions.filter(s => /approved/i.test(s.status)).length;
+    const declined = submissions.filter(s => /declined/i.test(s.status)).length;
+    const rate     = total > 0 ? Math.round((approved / total) * 100) : 0;
+
+    return {
+      totalSubmissions: total,
+      newSubmissions:   newSubs,
+      quotesRequired:   submissions.filter(s => /quote/i.test(s.status)).length,
+      writtenPremiumYTD: 24.8,
+      pendingReview:    pending,
+      approvedThisMonth: approved,
+      declinedThisMonth: declined,
+      approvalRate:      rate,
+    };
+  }, [submissions, isLive]);
 
   const fastTrackCount = useMemo(
     () => submissions.filter(s => s.routing?.fastTrackEligible).length,
@@ -104,7 +209,25 @@ const Dashboard = ({ onSubmissionSelect }) => {
       <DxcFlex direction="column" gap="var(--spacing-gap-m)">
 
         {/* Page Title */}
-        <DxcHeading level={1} text="Dashboard" />
+        <DxcFlex alignItems="center" gap="var(--spacing-gap-m)">
+          <DxcHeading level={1} text="Dashboard" />
+          {isLive && !loadingData && (
+            <DxcBadge label="● Live — ServiceNow" mode="contextual" color="success" />
+          )}
+          {loadingData && (
+            <DxcFlex alignItems="center" gap="var(--spacing-gap-xs)">
+              <DxcSpinner mode="small" />
+              <DxcTypography fontSize="font-scale-02" color="var(--color-fg-neutral-dark)">
+                Loading from ServiceNow...
+              </DxcTypography>
+            </DxcFlex>
+          )}
+          {dataError && (
+            <DxcTypography fontSize="font-scale-02" color="var(--color-fg-error-medium)">
+              ⚠ {dataError}
+            </DxcTypography>
+          )}
+        </DxcFlex>
 
         {/* ── Row 1: My Priorities Today + Key Metrics ── */}
         <div className="dashboard-top-row">

@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    { "source": "/api/servicenow-oauth", "destination": "/api/servicenow-oauth" },
+    { "source": "/api/servicenow-api",   "destination": "/api/servicenow-api"   }
+  ],
+  "functions": {
+    "api/servicenow-oauth.js": { "memory": 128, "maxDuration": 15 },
+    "api/servicenow-api.js":   { "memory": 128, "maxDuration": 15 }
+  },
+  "devCommand": "npm run dev",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
+}

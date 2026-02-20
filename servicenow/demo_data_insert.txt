@@ -1,0 +1,754 @@
+// ================================================================
+// Underwriter Assistant - Demo Data Insert Script
+// Navigate to: System Definition > Scripts - Background
+// Run as: Global Admin
+// App Prefix: x_dxcis_underwri_0
+//
+// Creates:
+//   5  Submissions       (parent)
+//   15 Vehicles          (3 per submission)
+//   15 Drivers           (3 per submission)
+//   15 Driver Codes      (3 per driver, 1 driver set)
+//   15 Documents         (3 per submission)
+//   15 IDP Fields        (3 per document, 1 doc set)
+//   15 Loss Runs         (3 per submission)
+//   15 Workflow Stages   (3 per submission)
+//   15 UW Tasks          (3 per submission)
+//   15 Notes             (3 per submission)
+//   15 Messages          (3 per submission)
+//   15 Reports           (3 per submission)
+//    5 Referrals         (1 per submission)
+//    5 AI Recommendations(1 per submission)
+//    5 Compliances       (1 per submission)
+// ================================================================
+
+var P = 'x_dxcis_underwri_0';
+var adminUser = gs.getUserID();
+
+function ins(table, data) {
+    var gr = new GlideRecord(P + '_' + table);
+    gr.initialize();
+    for (var k in data) { gr.setValue(k, data[k]); }
+    var id = gr.insert();
+    if (!id) gs.error('Failed insert: ' + P + '_' + table + ' | ' + JSON.stringify(data));
+    return id ? id.toString() : null;
+}
+
+// ================================================================
+// SUBMISSIONS (5)
+// ================================================================
+gs.print('--- Inserting Submissions ---');
+
+var subData = [
+    {
+        number: 'UWS-2025-0001', applicant_name: 'Apex Transport LLC',
+        status: 'in_review', priority: 'high', product_type: 'pc',
+        line_of_business: 'Commercial Auto', coverage_type: 'Liability + Physical Damage',
+        coverage_amount: '2500000', submitted_date: '2025-01-15 09:00:00',
+        received_date: '2025-01-15 09:05:00', effective_date: '2025-02-01',
+        expiration_date: '2026-02-01', assigned_to: adminUser,
+        risk_score: 72, days_in_queue: 5, requirements_complete: 85,
+        fleet_size: 12, drivers_count: 15, radius_of_operation: '500 miles',
+        cargo_type: 'General Freight', loss_history_summary: '2 claims in 3 years, $45,000 total incurred',
+        fast_track_eligible: false, appetite_match: 'standard',
+        prior_carrier: 'Nationwide', prior_policy_number: 'NW-CA-2023-88821',
+        primary_state: 'TX', sic_code: '4213', years_in_business: 8,
+        annual_receipts: '3200000', short_description: 'Mid-size trucking, general freight, interstate',
+        current_stage: 'Risk Assessment', routing_decision: 'Standard UW Queue',
+        routing_reason: 'Risk score within appetite, fleet size moderate',
+        target_completion_date: '2025-02-10'
+    },
+    {
+        number: 'UWS-2025-0002', applicant_name: 'Blue Ridge Logistics Inc',
+        status: 'pending_review', priority: 'critical', product_type: 'pc',
+        line_of_business: 'Commercial Auto', coverage_type: 'Full Coverage',
+        coverage_amount: '5000000', submitted_date: '2025-01-18 10:30:00',
+        received_date: '2025-01-18 10:35:00', effective_date: '2025-02-15',
+        expiration_date: '2026-02-15', assigned_to: adminUser,
+        risk_score: 58, days_in_queue: 2, requirements_complete: 40,
+        fleet_size: 28, drivers_count: 32, radius_of_operation: '1000+ miles',
+        cargo_type: 'Hazardous Materials', loss_history_summary: '5 claims in 5 years, $210,000 total incurred',
+        fast_track_eligible: false, appetite_match: 'conditional',
+        prior_carrier: 'Zurich', prior_policy_number: 'ZU-HM-2024-44102',
+        primary_state: 'NC', sic_code: '4215', years_in_business: 15,
+        annual_receipts: '8700000', short_description: 'Large carrier, hazmat endorsed, multi-state',
+        current_stage: 'Document Review', routing_decision: 'Senior UW Required',
+        routing_reason: 'Hazmat cargo and high loss frequency trigger referral',
+        target_completion_date: '2025-02-05'
+    },
+    {
+        number: 'UWS-2025-0003', applicant_name: 'Sunrise Courier Services',
+        status: 'approved', priority: 'medium', product_type: 'pc',
+        line_of_business: 'Commercial Auto', coverage_type: 'Liability Only',
+        coverage_amount: '1000000', submitted_date: '2025-01-10 08:00:00',
+        received_date: '2025-01-10 08:10:00', effective_date: '2025-01-20',
+        expiration_date: '2026-01-20', assigned_to: adminUser,
+        risk_score: 88, days_in_queue: 1, requirements_complete: 100,
+        fleet_size: 5, drivers_count: 6, radius_of_operation: '100 miles',
+        cargo_type: 'Light Parcels', loss_history_summary: 'No claims in 3 years',
+        fast_track_eligible: true, appetite_match: 'preferred',
+        prior_carrier: 'Progressive', prior_policy_number: 'PG-CA-2024-77345',
+        primary_state: 'FL', sic_code: '4215', years_in_business: 5,
+        annual_receipts: '750000', short_description: 'Small courier, local delivery, clean record',
+        current_stage: 'Approved', routing_decision: 'Fast Track',
+        routing_reason: 'Preferred appetite, clean loss history, small fleet',
+        target_completion_date: '2025-01-15'
+    },
+    {
+        number: 'UWS-2025-0004', applicant_name: 'Desert Star Freight LLC',
+        status: 'requirements_needed', priority: 'medium', product_type: 'pc',
+        line_of_business: 'Commercial Auto', coverage_type: 'Liability + Cargo',
+        coverage_amount: '3000000', submitted_date: '2025-01-20 14:00:00',
+        received_date: '2025-01-20 14:20:00', effective_date: '2025-03-01',
+        expiration_date: '2026-03-01', assigned_to: adminUser,
+        risk_score: 64, days_in_queue: 8, requirements_complete: 55,
+        fleet_size: 18, drivers_count: 22, radius_of_operation: '750 miles',
+        cargo_type: 'Electronics', loss_history_summary: '3 claims in 4 years, $78,000 total incurred',
+        fast_track_eligible: false, appetite_match: 'standard',
+        prior_carrier: 'Liberty Mutual', prior_policy_number: 'LM-CA-2024-39001',
+        primary_state: 'AZ', sic_code: '4213', years_in_business: 11,
+        annual_receipts: '5100000', short_description: 'Mid-size carrier, high-value cargo, Southwest region',
+        current_stage: 'Requirements Gathering', routing_decision: 'Standard UW Queue',
+        routing_reason: 'Missing MVR reports and prior loss run documentation',
+        target_completion_date: '2025-02-20'
+    },
+    {
+        number: 'UWS-2025-0005', applicant_name: 'Great Lakes Haulers Co',
+        status: 'declined', priority: 'low', product_type: 'pc',
+        line_of_business: 'Commercial Auto', coverage_type: 'Full Coverage',
+        coverage_amount: '4000000', submitted_date: '2025-01-05 11:00:00',
+        received_date: '2025-01-05 11:15:00', effective_date: '2025-01-25',
+        expiration_date: '2026-01-25', assigned_to: adminUser,
+        risk_score: 31, days_in_queue: 14, requirements_complete: 100,
+        fleet_size: 40, drivers_count: 48, radius_of_operation: '1000+ miles',
+        cargo_type: 'Mixed - Refrigerated', loss_history_summary: '9 claims in 3 years, $520,000 total incurred',
+        fast_track_eligible: false, appetite_match: 'out_of_appetite',
+        prior_carrier: 'Travelers', prior_policy_number: 'TR-CA-2024-10220',
+        primary_state: 'OH', sic_code: '4212', years_in_business: 22,
+        annual_receipts: '12000000', short_description: 'Large fleet, reefer units, high loss ratio',
+        current_stage: 'Declined', routing_decision: 'Decline',
+        routing_reason: 'Loss ratio exceeds 95%, out of appetite for risk profile',
+        target_completion_date: '2025-01-20'
+    }
+];
+
+var subIds = [];
+subData.forEach(function(s) {
+    var id = ins('submission', s);
+    subIds.push(id);
+    gs.print('Submission: ' + s.number + ' -> ' + id);
+});
+
+// ================================================================
+// VEHICLES (3 per submission = 15)
+// ================================================================
+gs.print('\n--- Inserting Vehicles ---');
+
+var vehicleTemplates = [
+    [
+        { veh_number:'V-001', year:2022, make:'Freightliner', model:'Cascadia', vin:'1FUJGBDV4NLAA0001', body_type:'Sleeper Semi', vehicle_type:'Tractor', state:'TX', zip_code:'75201', territory:'T3', class_code:'72101', symbol:''  , use:'commercial', stated_value:'165000', cost_new:'185000', coverage:'Liability, Comp, Collision', liability:'$1M CSL', confidence_score:95.2 },
+        { veh_number:'V-002', year:2021, make:'Kenworth',     model:'T680',      vin:'2NKWL40X4M321ABC', body_type:'Day Cab Semi',   vehicle_type:'Tractor', state:'TX', zip_code:'75201', territory:'T3', class_code:'72101', symbol:'',   use:'commercial', stated_value:'145000', cost_new:'160000', coverage:'Liability, Comp, Collision', liability:'$1M CSL', confidence_score:93.8 },
+        { veh_number:'V-003', year:2020, make:'Great Dane',   model:'53ft Reefer',vin:'1GRAA0628LT000123', body_type:'Refrigerated Trailer', vehicle_type:'Trailer', state:'TX', zip_code:'75201', territory:'T3', class_code:'72199', symbol:'',   use:'commercial', stated_value:'55000',  cost_new:'72000',  coverage:'Comp, Collision',          liability:'N/A',     confidence_score:90.1 }
+    ],
+    [
+        { veh_number:'V-001', year:2023, make:'Peterbilt',    model:'389',        vin:'1XPXD49X9PD001001', body_type:'Sleeper Semi',   vehicle_type:'Tractor', state:'NC', zip_code:'28201', territory:'T5', class_code:'72101', symbol:'',   use:'commercial', stated_value:'195000', cost_new:'210000', coverage:'Liability, Comp, Collision, Cargo', liability:'$2M CSL', confidence_score:94.0 },
+        { veh_number:'V-002', year:2022, make:'Volvo',        model:'VNL860',     vin:'4V4NC9EH9NN000222', body_type:'Sleeper Semi',   vehicle_type:'Tractor', state:'NC', zip_code:'28201', territory:'T5', class_code:'72101', symbol:'',   use:'commercial', stated_value:'185000', cost_new:'200000', coverage:'Liability, Comp, Collision, Cargo', liability:'$2M CSL', confidence_score:92.5 },
+        { veh_number:'V-003', year:2021, make:'Mac Trailer',  model:'Tanker 40ft',vin:'5MAHBTAA0MJ000333', body_type:'Tank Trailer',   vehicle_type:'Trailer', state:'NC', zip_code:'28201', territory:'T5', class_code:'72199', symbol:'',   use:'commercial', stated_value:'65000',  cost_new:'80000',  coverage:'Comp, Collision, Pollution',       liability:'N/A',     confidence_score:88.7 }
+    ],
+    [
+        { veh_number:'V-001', year:2024, make:'Ford',         model:'Transit 350', vin:'1FTBR3X85RKA00001', body_type:'Cargo Van',     vehicle_type:'Van',     state:'FL', zip_code:'33101', territory:'T2', class_code:'71101', symbol:'',   use:'commercial', stated_value:'48000',  cost_new:'52000',  coverage:'Liability, Comp, Collision',        liability:'$500K CSL',confidence_score:97.3 },
+        { veh_number:'V-002', year:2024, make:'Ford',         model:'Transit 350', vin:'1FTBR3X85RKA00002', body_type:'Cargo Van',     vehicle_type:'Van',     state:'FL', zip_code:'33101', territory:'T2', class_code:'71101', symbol:'',   use:'commercial', stated_value:'48000',  cost_new:'52000',  coverage:'Liability, Comp, Collision',        liability:'$500K CSL',confidence_score:97.1 },
+        { veh_number:'V-003', year:2023, make:'Mercedes',     model:'Sprinter 2500',vin:'WD3PE8CC5P5001003', body_type:'Cargo Van',    vehicle_type:'Van',     state:'FL', zip_code:'33102', territory:'T2', class_code:'71101', symbol:'',   use:'commercial', stated_value:'45000',  cost_new:'49000',  coverage:'Liability, Comp, Collision',        liability:'$500K CSL',confidence_score:96.8 }
+    ],
+    [
+        { veh_number:'V-001', year:2022, make:'Freightliner', model:'M2 106',     vin:'1FVACWDU4NHAA0001', body_type:'Box Truck',      vehicle_type:'Straight Truck', state:'AZ', zip_code:'85001', territory:'T7', class_code:'72201', symbol:'', use:'commercial', stated_value:'95000',  cost_new:'110000', coverage:'Liability, Comp, Collision, Cargo', liability:'$1M CSL', confidence_score:91.4 },
+        { veh_number:'V-002', year:2021, make:'International',model:'MV607',      vin:'3HSDJAPR1LL000002', body_type:'Flatbed',        vehicle_type:'Straight Truck', state:'AZ', zip_code:'85001', territory:'T7', class_code:'72201', symbol:'', use:'commercial', stated_value:'88000',  cost_new:'100000', coverage:'Liability, Comp, Collision',        liability:'$1M CSL', confidence_score:89.2 },
+        { veh_number:'V-003', year:2023, make:'Utility',      model:'3000R 53ft',  vin:'1UYVS2533PU000003', body_type:'Dry Van Trailer', vehicle_type:'Trailer', state:'AZ', zip_code:'85002', territory:'T7', class_code:'72199', symbol:'', use:'commercial', stated_value:'42000',  cost_new:'50000',  coverage:'Comp, Collision',                  liability:'N/A',     confidence_score:85.6 }
+    ],
+    [
+        { veh_number:'V-001', year:2019, make:'Kenworth',     model:'W990',       vin:'1XKWD49X9KJ000001', body_type:'Sleeper Semi',   vehicle_type:'Tractor', state:'OH', zip_code:'43201', territory:'T4', class_code:'72101', symbol:'',   use:'commercial', stated_value:'125000', cost_new:'175000', coverage:'Liability, Comp, Collision',        liability:'$2M CSL', confidence_score:78.3 },
+        { veh_number:'V-002', year:2018, make:'Peterbilt',    model:'579',        vin:'2NP2HM7X9JM000002', body_type:'Sleeper Semi',   vehicle_type:'Tractor', state:'OH', zip_code:'43201', territory:'T4', class_code:'72101', symbol:'',   use:'commercial', stated_value:'110000', cost_new:'165000', coverage:'Liability, Comp, Collision',        liability:'$2M CSL', confidence_score:75.9 },
+        { veh_number:'V-003', year:2020, make:'Wabash',       model:'Dry Freight 53ft', vin:'1JJV532D4LF000003', body_type:'Dry Van Trailer', vehicle_type:'Trailer', state:'OH', zip_code:'43202', territory:'T4', class_code:'72199', symbol:'', use:'commercial', stated_value:'38000', cost_new:'55000', coverage:'Comp, Collision', liability:'N/A', confidence_score:80.1 }
+    ]
+];
+
+var vehicleIds = [[], [], [], [], []];
+subIds.forEach(function(subId, i) {
+    vehicleTemplates[i].forEach(function(v) {
+        v.submission = subId;
+        var vid = ins('vehicle', v);
+        vehicleIds[i].push(vid);
+        gs.print('  Vehicle: ' + v.veh_number + ' (' + v.make + ' ' + v.model + ') -> ' + vid);
+    });
+});
+
+// ================================================================
+// DRIVERS (3 per submission = 15)
+// ================================================================
+gs.print('\n--- Inserting Drivers ---');
+
+var driverTemplates = [
+    [
+        { driver_number:'D-001', first_name:'James',  last_name:'Rutherford', date_of_birth:'1982-05-14', license_number:'TX82514001', license_state:'TX', years_experience:18, mvr_status:'clean',      confidence_score:96.5 },
+        { driver_number:'D-002', first_name:'Maria',  last_name:'Gonzalez',   date_of_birth:'1990-11-22', license_number:'TX90022002', license_state:'TX', years_experience:10, mvr_status:'clean',      confidence_score:94.2 },
+        { driver_number:'D-003', first_name:'Earl',   last_name:'Patterson',  date_of_birth:'1975-03-08', license_number:'TX75008003', license_state:'TX', years_experience:25, mvr_status:'flagged',    confidence_score:88.0 }
+    ],
+    [
+        { driver_number:'D-001', first_name:'Robert', last_name:'Chen',       date_of_birth:'1985-07-30', license_number:'NC85030001', license_state:'NC', years_experience:14, mvr_status:'flagged',    confidence_score:82.3 },
+        { driver_number:'D-002', first_name:'Angela', last_name:'Morrison',   date_of_birth:'1979-02-19', license_number:'NC79019002', license_state:'NC', years_experience:21, mvr_status:'clean',      confidence_score:95.1 },
+        { driver_number:'D-003', first_name:'Derek',  last_name:'Washington', date_of_birth:'1993-09-05', license_number:'NC93005003', license_state:'NC', years_experience:7,  mvr_status:'pending',    confidence_score:70.0 }
+    ],
+    [
+        { driver_number:'D-001', first_name:'Sandra', last_name:'Patel',      date_of_birth:'1991-04-12', license_number:'FL91012001', license_state:'FL', years_experience:9,  mvr_status:'clean',      confidence_score:98.2 },
+        { driver_number:'D-002', first_name:'Marcus', last_name:'Thompson',   date_of_birth:'1988-08-27', license_number:'FL88027002', license_state:'FL', years_experience:12, mvr_status:'clean',      confidence_score:97.5 },
+        { driver_number:'D-003', first_name:'Linda',  last_name:'Schwartz',   date_of_birth:'1995-12-03', license_number:'FL95003003', license_state:'FL', years_experience:5,  mvr_status:'clean',      confidence_score:96.9 }
+    ],
+    [
+        { driver_number:'D-001', first_name:'Carlos', last_name:'Mendoza',    date_of_birth:'1980-06-18', license_number:'AZ80018001', license_state:'AZ', years_experience:16, mvr_status:'clean',      confidence_score:90.7 },
+        { driver_number:'D-002', first_name:'Heather',last_name:'Blake',      date_of_birth:'1987-10-25', license_number:'AZ87025002', license_state:'AZ', years_experience:13, mvr_status:'flagged',    confidence_score:79.4 },
+        { driver_number:'D-003', first_name:'Tyrone', last_name:'Jackson',    date_of_birth:'1992-01-14', license_number:'AZ92014003', license_state:'AZ', years_experience:8,  mvr_status:'not_ordered',confidence_score:65.0 }
+    ],
+    [
+        { driver_number:'D-001', first_name:'Frank',  last_name:'O\'Brien',   date_of_birth:'1970-09-22', license_number:'OH70022001', license_state:'OH', years_experience:28, mvr_status:'flagged',    confidence_score:62.1 },
+        { driver_number:'D-002', first_name:'Debra',  last_name:'Kowalski',   date_of_birth:'1976-03-31', license_number:'OH76031002', license_state:'OH', years_experience:20, mvr_status:'flagged',    confidence_score:60.8 },
+        { driver_number:'D-003', first_name:'Gary',   last_name:'Simmons',    date_of_birth:'1983-07-07', license_number:'OH83007003', license_state:'OH', years_experience:15, mvr_status:'flagged',    confidence_score:58.3 }
+    ]
+];
+
+var driverIds = [[], [], [], [], []];
+subIds.forEach(function(subId, i) {
+    driverTemplates[i].forEach(function(d) {
+        d.submission = subId;
+        var did = ins('driver', d);
+        driverIds[i].push(did);
+        gs.print('  Driver: ' + d.first_name + ' ' + d.last_name + ' -> ' + did);
+    });
+});
+
+// ================================================================
+// DRIVER CODES (3 per submission's first driver = 15)
+// ================================================================
+gs.print('\n--- Inserting Driver Codes ---');
+
+var driverCodeSets = [
+    [],
+    [
+        { code:'SP01', description:'Speeding 1-10 mph over limit', effective_date:'2023-03-12', points:2 },
+        { code:'AC01', description:'At-fault accident, minor property damage', effective_date:'2022-11-05', points:4 },
+        { code:'SP02', description:'Speeding 11-20 mph over limit', effective_date:'2024-01-20', points:3 }
+    ],
+    [],
+    [
+        { code:'SP01', description:'Speeding 1-10 mph over limit', effective_date:'2023-06-15', points:2 },
+        { code:'LN01', description:'Improper lane change', effective_date:'2024-02-01', points:2 },
+        { code:'FO01', description:'Following too closely', effective_date:'2022-09-10', points:2 }
+    ],
+    [
+        { code:'AC01', description:'At-fault accident, bodily injury', effective_date:'2022-04-18', points:6 },
+        { code:'SP03', description:'Speeding 21+ mph over limit', effective_date:'2023-08-22', points:5 },
+        { code:'DU01', description:'Driving under influence (DUI)', effective_date:'2021-12-30', points:10 }
+    ]
+];
+
+// 3 code sets for subs 2,4,5 (indices 1,3,4), zero for subs 1,3
+// To reach 15 total, apply 3 codes to every submission's first driver
+var allDriverCodeData = [
+    [
+        { code:'SP01', description:'Speeding 1-10 mph over limit', effective_date:'2024-06-01', points:2 },
+        { code:'LN01', description:'Improper lane change',          effective_date:'2023-11-15', points:1 },
+        { code:'FO01', description:'Following too closely',         effective_date:'2023-05-20', points:2 }
+    ],
+    [
+        { code:'SP01', description:'Speeding 1-10 mph over limit',  effective_date:'2023-03-12', points:2 },
+        { code:'AC01', description:'At-fault accident, property damage', effective_date:'2022-11-05', points:4 },
+        { code:'SP02', description:'Speeding 11-20 mph over limit', effective_date:'2024-01-20', points:3 }
+    ],
+    [
+        { code:'MV01', description:'No violations on record',       effective_date:'2020-01-01', points:0 },
+        { code:'MV02', description:'Clean MVR - 5 year review',     effective_date:'2020-01-01', points:0 },
+        { code:'MV03', description:'Safe driver certification',     effective_date:'2023-06-01', points:0 }
+    ],
+    [
+        { code:'SP01', description:'Speeding 1-10 mph over limit',  effective_date:'2023-06-15', points:2 },
+        { code:'LN01', description:'Improper lane change',          effective_date:'2024-02-01', points:2 },
+        { code:'FO01', description:'Following too closely',         effective_date:'2022-09-10', points:2 }
+    ],
+    [
+        { code:'AC01', description:'At-fault accident, bodily injury', effective_date:'2022-04-18', points:6 },
+        { code:'SP03', description:'Speeding 21+ mph over limit',   effective_date:'2023-08-22', points:5 },
+        { code:'DU01', description:'Driving under influence (DUI)', effective_date:'2021-12-30', points:10 }
+    ]
+];
+
+driverIds.forEach(function(driverSet, i) {
+    var firstDriver = driverSet[0];
+    if (!firstDriver) return;
+    allDriverCodeData[i].forEach(function(dc) {
+        dc.driver = firstDriver;
+        var dcid = ins('driver_code', dc);
+        gs.print('  Driver Code: ' + dc.code + ' -> ' + dcid);
+    });
+});
+
+// ================================================================
+// DOCUMENTS (3 per submission = 15)
+// ================================================================
+gs.print('\n--- Inserting Documents ---');
+
+var docTemplates = [
+    [
+        { document_type:'acord_125', file_name:'Apex_ACORD125_2025.pdf',   file_size:'2.4 MB', uploaded_by:'broker@apextransport.com', uploaded_date:'2025-01-15 09:05:00', status:'validated', page_count:8,  confidence_score:96.4, extracted_fields:42, validated_fields:40, flagged_fields:2,  description:'ACORD 125 - Commercial Auto Application' },
+        { document_type:'acord_140', file_name:'Apex_ACORD140_2025.pdf',   file_size:'1.8 MB', uploaded_by:'broker@apextransport.com', uploaded_date:'2025-01-15 09:06:00', status:'validated', page_count:5,  confidence_score:94.1, extracted_fields:28, validated_fields:27, flagged_fields:1,  description:'ACORD 140 - Vehicle Schedule' },
+        { document_type:'loss_run',  file_name:'Apex_LossRun_3yr.pdf',     file_size:'0.9 MB', uploaded_by:'broker@apextransport.com', uploaded_date:'2025-01-15 09:07:00', status:'extracted', page_count:3,  confidence_score:91.2, extracted_fields:15, validated_fields:13, flagged_fields:2,  description:'3-Year Loss Run from Nationwide' }
+    ],
+    [
+        { document_type:'acord_125', file_name:'BlueRidge_ACORD125.pdf',   file_size:'3.1 MB', uploaded_by:'agent@blueridgelogistics.com', uploaded_date:'2025-01-18 10:35:00', status:'processing', page_count:10, confidence_score:89.3, extracted_fields:48, validated_fields:38, flagged_fields:10, description:'ACORD 125 - Hazmat Carrier Application' },
+        { document_type:'mvr',       file_name:'BlueRidge_MVR_Bundle.pdf', file_size:'5.6 MB', uploaded_by:'agent@blueridgelogistics.com', uploaded_date:'2025-01-18 10:40:00', status:'extracted', page_count:32, confidence_score:85.7, extracted_fields:96, validated_fields:78, flagged_fields:18, description:'MVR Reports - All 32 Drivers' },
+        { document_type:'loss_run',  file_name:'BlueRidge_LossRun_5yr.pdf',file_size:'2.2 MB', uploaded_by:'agent@blueridgelogistics.com', uploaded_date:'2025-01-18 10:45:00', status:'extracted', page_count:12, confidence_score:87.4, extracted_fields:35, validated_fields:29, flagged_fields:6,  description:'5-Year Loss Run from Zurich' }
+    ],
+    [
+        { document_type:'acord_125', file_name:'Sunrise_ACORD125.pdf',     file_size:'1.5 MB', uploaded_by:'owner@sunrisecourier.com',    uploaded_date:'2025-01-10 08:10:00', status:'validated', page_count:6,  confidence_score:98.9, extracted_fields:38, validated_fields:38, flagged_fields:0,  description:'ACORD 125 - Courier Application' },
+        { document_type:'acord_140', file_name:'Sunrise_VehicleSchedule.pdf',file_size:'0.7 MB', uploaded_by:'owner@sunrisecourier.com', uploaded_date:'2025-01-10 08:12:00', status:'validated', page_count:2,  confidence_score:99.1, extracted_fields:15, validated_fields:15, flagged_fields:0,  description:'ACORD 140 - 5 Vans Schedule' },
+        { document_type:'mvr',       file_name:'Sunrise_MVR_AllDrivers.pdf',file_size:'1.2 MB', uploaded_by:'owner@sunrisecourier.com',   uploaded_date:'2025-01-10 08:15:00', status:'validated', page_count:6,  confidence_score:97.8, extracted_fields:18, validated_fields:18, flagged_fields:0,  description:'Clean MVR - 6 Drivers' }
+    ],
+    [
+        { document_type:'acord_125', file_name:'DesertStar_ACORD125.pdf',  file_size:'2.7 MB', uploaded_by:'cfo@desertstarfreight.com',   uploaded_date:'2025-01-20 14:20:00', status:'extracted', page_count:9,  confidence_score:88.6, extracted_fields:44, validated_fields:32, flagged_fields:12, description:'ACORD 125 - Electronics Hauler Application' },
+        { document_type:'financial',  file_name:'DesertStar_Financials.pdf',file_size:'4.1 MB', uploaded_by:'cfo@desertstarfreight.com',  uploaded_date:'2025-01-20 14:25:00', status:'uploaded',  page_count:22, confidence_score:0,    extracted_fields:0,  validated_fields:0,  flagged_fields:0,  description:'3-Year Financial Statements - Pending IDP' },
+        { document_type:'inspection', file_name:'DesertStar_DOT_Insp.pdf', file_size:'1.3 MB', uploaded_by:'cfo@desertstarfreight.com',   uploaded_date:'2025-01-20 14:30:00', status:'extracted', page_count:7,  confidence_score:92.3, extracted_fields:22, validated_fields:18, flagged_fields:4,  description:'DOT Safety Inspection Report - 2024' }
+    ],
+    [
+        { document_type:'acord_125', file_name:'GreatLakes_ACORD125.pdf',  file_size:'3.8 MB', uploaded_by:'mgr@greatlakeshaulers.com',   uploaded_date:'2025-01-05 11:15:00', status:'validated', page_count:12, confidence_score:77.2, extracted_fields:52, validated_fields:42, flagged_fields:10, description:'ACORD 125 - Large Fleet Reefer Application' },
+        { document_type:'loss_run',  file_name:'GreatLakes_LossRun_3yr.pdf',file_size:'3.5 MB', uploaded_by:'mgr@greatlakeshaulers.com',  uploaded_date:'2025-01-05 11:20:00', status:'validated', page_count:18, confidence_score:82.1, extracted_fields:45, validated_fields:38, flagged_fields:7,  description:'3-Year Loss Run - 9 Claims Documented' },
+        { document_type:'mvr',       file_name:'GreatLakes_MVR_Bundle.pdf', file_size:'8.4 MB', uploaded_by:'mgr@greatlakeshaulers.com',  uploaded_date:'2025-01-05 11:30:00', status:'validated', page_count:48, confidence_score:75.9, extracted_fields:144,validated_fields:112,flagged_fields:32, description:'MVR Reports - 48 Drivers, Multiple Violations' }
+    ]
+];
+
+var docIds = [[], [], [], [], []];
+subIds.forEach(function(subId, i) {
+    docTemplates[i].forEach(function(d) {
+        d.submission = subId;
+        var did = ins('document', d);
+        docIds[i].push(did);
+        gs.print('  Document: ' + d.file_name + ' -> ' + did);
+    });
+});
+
+// ================================================================
+// IDP FIELDS (3 per first document of each submission = 15)
+// ================================================================
+gs.print('\n--- Inserting IDP Fields ---');
+
+var idpTemplates = [
+    [
+        { field_name:'named_insured',       field_label:'Named Insured',        extracted_value:'Apex Transport LLC',              confidence_score:98.5, is_flagged:false, validated_value:'Apex Transport LLC',              is_validated:true,  entity_type:'general', entity_index:0 },
+        { field_name:'vehicle_year_1',      field_label:'Vehicle Year (V-001)', extracted_value:'2022',                            confidence_score:99.0, is_flagged:false, validated_value:'2022',                            is_validated:true,  entity_type:'vehicle', entity_index:1 },
+        { field_name:'vehicle_vin_1',       field_label:'VIN (V-001)',          extracted_value:'1FUJGBDV4NLAA0001',               confidence_score:97.2, is_flagged:false, validated_value:'1FUJGBDV4NLAA0001',               is_validated:true,  entity_type:'vehicle', entity_index:1 }
+    ],
+    [
+        { field_name:'named_insured',       field_label:'Named Insured',        extracted_value:'Blue Ridge Logistics lnc',        confidence_score:76.3, is_flagged:true,  validated_value:'Blue Ridge Logistics Inc',         is_validated:true,  entity_type:'general', entity_index:0 },
+        { field_name:'dot_number',          field_label:'DOT Number',           extracted_value:'DOT 2847361',                     confidence_score:88.4, is_flagged:false, validated_value:'DOT 2847361',                     is_validated:true,  entity_type:'general', entity_index:0 },
+        { field_name:'cargo_type',          field_label:'Cargo Description',    extracted_value:'Flammable liquids - Class 3 HM', confidence_score:91.2, is_flagged:true,  validated_value:'Flammable Liquids - HAZMAT Class 3',is_validated:true, entity_type:'general', entity_index:0 }
+    ],
+    [
+        { field_name:'named_insured',       field_label:'Named Insured',        extracted_value:'Sunrise Courier Services',        confidence_score:99.8, is_flagged:false, validated_value:'Sunrise Courier Services',         is_validated:true,  entity_type:'general', entity_index:0 },
+        { field_name:'fein',                field_label:'Federal EIN',          extracted_value:'82-4419203',                      confidence_score:99.5, is_flagged:false, validated_value:'82-4419203',                      is_validated:true,  entity_type:'general', entity_index:0 },
+        { field_name:'fleet_count',         field_label:'Number of Vehicles',   extracted_value:'5',                               confidence_score:99.9, is_flagged:false, validated_value:'5',                               is_validated:true,  entity_type:'general', entity_index:0 }
+    ],
+    [
+        { field_name:'named_insured',       field_label:'Named Insured',        extracted_value:'Desert Star Freight LLC',         confidence_score:95.2, is_flagged:false, validated_value:'Desert Star Freight LLC',          is_validated:true,  entity_type:'general', entity_index:0 },
+        { field_name:'coverage_amount',     field_label:'Requested Limit',      extracted_value:'3,00,000',                        confidence_score:62.1, is_flagged:true,  validated_value:'3,000,000',                       is_validated:true,  entity_type:'general', entity_index:0 },
+        { field_name:'prior_carrier',       field_label:'Prior Carrier Name',   extracted_value:'Liberty Mutual Ins Co',           confidence_score:89.7, is_flagged:false, validated_value:'Liberty Mutual Insurance Company', is_validated:true,  entity_type:'general', entity_index:0 }
+    ],
+    [
+        { field_name:'named_insured',       field_label:'Named Insured',        extracted_value:'Great Lakes Haulers Co.',         confidence_score:94.1, is_flagged:false, validated_value:'Great Lakes Haulers Co',           is_validated:true,  entity_type:'general', entity_index:0 },
+        { field_name:'fleet_count',         field_label:'Number of Vehicles',   extracted_value:'38',                              confidence_score:71.4, is_flagged:true,  validated_value:'40',                              is_validated:true,  entity_type:'general', entity_index:0 },
+        { field_name:'loss_total_incurred', field_label:'Total Incurred Losses', extracted_value:'$520,000',                       confidence_score:88.9, is_flagged:false, validated_value:'$520,000',                        is_validated:true,  entity_type:'general', entity_index:0 }
+    ]
+];
+
+subIds.forEach(function(subId, i) {
+    var firstDoc = docIds[i][0];
+    if (!firstDoc) return;
+    idpTemplates[i].forEach(function(f) {
+        f.document   = firstDoc;
+        f.submission = subId;
+        var fid = ins('idp_field', f);
+        gs.print('  IDP Field: ' + f.field_name + ' -> ' + fid);
+    });
+});
+
+// ================================================================
+// LOSS RUNS (3 per submission = 15)
+// ================================================================
+gs.print('\n--- Inserting Loss Runs ---');
+
+var lossRunTemplates = [
+    [
+        { claim_date:'2022-07-14', claim_type:'collision',     description:'Rear-end collision on I-35, driver at fault, minor trailer damage',   status:'closed', incurred:'18500', paid:'18500', reserved:'0' },
+        { claim_date:'2023-11-02', claim_type:'cargo',         description:'Cargo damage due to improper loading, general freight spill',          status:'closed', incurred:'26500', paid:'26500', reserved:'0' },
+        { claim_date:'2024-03-18', claim_type:'comprehensive', description:'Hail damage to 3 tractors during storm event in Dallas yard',          status:'open',   incurred:'15000', paid:'8000',  reserved:'7000' }
+    ],
+    [
+        { claim_date:'2020-05-11', claim_type:'liability',     description:'Third-party bodily injury, driver ran red light, serious injuries',    status:'closed', incurred:'95000', paid:'95000', reserved:'0' },
+        { claim_date:'2021-09-23', claim_type:'cargo',         description:'Hazmat spill - Class 3 flammable liquid, cleanup and fines included',  status:'closed', incurred:'62000', paid:'62000', reserved:'0' },
+        { claim_date:'2022-12-01', claim_type:'collision',     description:'Multi-vehicle accident on I-85, driver 2 cited for following too close', status:'closed', incurred:'38000', paid:'38000', reserved:'0' },
+    ],
+    [
+        { claim_date:'2023-01-01', claim_type:'liability', description:'No claims - clean loss record for review period', status:'closed', incurred:'0', paid:'0', reserved:'0' },
+        { claim_date:'2023-01-01', claim_type:'collision',    description:'No claims - 3 year clean record confirmed',       status:'closed', incurred:'0', paid:'0', reserved:'0' },
+        { claim_date:'2023-01-01', claim_type:'comprehensive', description:'No claims - all vehicles accident free',         status:'closed', incurred:'0', paid:'0', reserved:'0' }
+    ],
+    [
+        { claim_date:'2021-04-20', claim_type:'cargo',      description:'Electronics cargo theft from unsecured trailer overnight',                status:'closed', incurred:'41000', paid:'41000', reserved:'0' },
+        { claim_date:'2022-08-15', claim_type:'collision',  description:'Sideswipe on I-10, minor damage, driver cited for unsafe lane change',    status:'closed', incurred:'22000', paid:'22000', reserved:'0' },
+        { claim_date:'2024-06-30', claim_type:'liability',  description:'Pedestrian strike in warehouse area, bodily injury claim pending',        status:'open',   incurred:'75000', paid:'15000', reserved:'60000' }
+    ],
+    [
+        { claim_date:'2021-11-08', claim_type:'collision',  description:'Multi-unit pileup on I-90, 2 tractors total loss, driver cited',         status:'closed', incurred:'210000', paid:'210000', reserved:'0' },
+        { claim_date:'2022-06-14', claim_type:'cargo',      description:'Reefer unit failure, $80K spoilage loss on refrigerated goods',          status:'closed', incurred:'80000',  paid:'80000',  reserved:'0' },
+        { claim_date:'2023-03-27', claim_type:'liability',  description:'Rear-end at highway speed, fatality claim, ongoing litigation',          status:'open',   incurred:'350000', paid:'50000',  reserved:'300000' }
+    ]
+];
+
+subIds.forEach(function(subId, i) {
+    lossRunTemplates[i].forEach(function(lr) {
+        lr.submission = subId;
+        var lid = ins('loss_run', lr);
+        gs.print('  Loss Run: ' + lr.claim_type + ' ' + lr.claim_date + ' -> ' + lid);
+    });
+});
+
+// ================================================================
+// WORKFLOW STAGES (3 per submission = 15)
+// ================================================================
+gs.print('\n--- Inserting Workflow Stages ---');
+
+var stageTemplates = [
+    [
+        { stage_name:'Document Intake',     status:'complete', sequence:1, completed_date:'2025-01-15 10:00:00', completed_by:adminUser },
+        { stage_name:'Eligibility Check',   status:'complete', sequence:2, completed_date:'2025-01-16 09:00:00', completed_by:adminUser },
+        { stage_name:'Risk Assessment',     status:'current',  sequence:3 }
+    ],
+    [
+        { stage_name:'Document Intake',     status:'complete', sequence:1, completed_date:'2025-01-18 11:00:00', completed_by:adminUser },
+        { stage_name:'Eligibility Check',   status:'current',  sequence:2 },
+        { stage_name:'Referral Review',     status:'pending',  sequence:3 }
+    ],
+    [
+        { stage_name:'Document Intake',     status:'complete', sequence:1, completed_date:'2025-01-10 08:30:00', completed_by:adminUser },
+        { stage_name:'Eligibility Check',   status:'complete', sequence:2, completed_date:'2025-01-10 14:00:00', completed_by:adminUser },
+        { stage_name:'Approval & Binding',  status:'complete', sequence:3, completed_date:'2025-01-14 16:00:00', completed_by:adminUser }
+    ],
+    [
+        { stage_name:'Document Intake',     status:'complete', sequence:1, completed_date:'2025-01-20 15:00:00', completed_by:adminUser },
+        { stage_name:'Requirements Gather', status:'current',  sequence:2 },
+        { stage_name:'Risk Assessment',     status:'pending',  sequence:3 }
+    ],
+    [
+        { stage_name:'Document Intake',     status:'complete', sequence:1, completed_date:'2025-01-05 12:00:00', completed_by:adminUser },
+        { stage_name:'Risk Assessment',     status:'complete', sequence:2, completed_date:'2025-01-10 09:00:00', completed_by:adminUser },
+        { stage_name:'Decline Notification',status:'complete', sequence:3, completed_date:'2025-01-18 11:00:00', completed_by:adminUser }
+    ]
+];
+
+subIds.forEach(function(subId, i) {
+    stageTemplates[i].forEach(function(s) {
+        s.submission = subId;
+        var sid = ins('workflow_stage', s);
+        gs.print('  Stage: ' + s.stage_name + ' [' + s.status + '] -> ' + sid);
+    });
+});
+
+// ================================================================
+// UW TASKS (3 per submission = 15)
+// ================================================================
+gs.print('\n--- Inserting UW Tasks ---');
+
+var taskTemplates = [
+    [
+        { title:'Order MVR for Earl Patterson',                     description:'Driver D-003 flagged - order MVR report via vendor portal',                   status:'in_progress', priority:'high',   assigned_to:adminUser, category:'third_party_data', due_date:'2025-01-22 17:00:00', sla_target:'48 hrs', sla_status:'on_time' },
+        { title:'Validate Loss Run Figures',                        description:'Cross-check extracted loss run totals against prior carrier confirmation',     status:'pending',     priority:'medium', assigned_to:adminUser, category:'risk_assessment',  due_date:'2025-01-25 17:00:00', sla_target:'5 days', sla_status:'on_time' },
+        { title:'Request Fleet Maintenance Records',                description:'Obtain 2-year maintenance logs for 12-unit fleet per underwriting guidelines', status:'pending',     priority:'low',    assigned_to:adminUser, category:'requirements',      due_date:'2025-02-01 17:00:00', sla_target:'10 days',sla_status:'on_time' }
+    ],
+    [
+        { title:'Escalate to Senior UW - Hazmat Risk',             description:'Risk profile requires senior UW sign-off per hazmat cargo guidelines',         status:'in_progress', priority:'critical',assigned_to:adminUser, category:'escalation',       due_date:'2025-01-20 12:00:00', sla_target:'24 hrs', sla_status:'at_risk'  },
+        { title:'Review DOT Safety Score - Blue Ridge',            description:'FMCSA SaferSys lookup: DOT 2847361, check BASICs scores',                     status:'pending',     priority:'critical',assigned_to:adminUser, category:'third_party_data', due_date:'2025-01-21 17:00:00', sla_target:'48 hrs', sla_status:'on_time' },
+        { title:'Obtain 5-Year Loss Run - All Carriers',           description:'Broker to provide complete 5-year loss history from all prior insurers',       status:'pending',     priority:'high',   assigned_to:adminUser, category:'requirements',      due_date:'2025-01-23 17:00:00', sla_target:'5 days', sla_status:'on_time' }
+    ],
+    [
+        { title:'Confirm Binding Authority',                       description:'Verify binding authority level for $1M liability limit per schedule',          status:'completed',   priority:'medium', assigned_to:adminUser, category:'quoting',          due_date:'2025-01-12 17:00:00', completed_date:'2025-01-12 14:30:00', sla_target:'48 hrs', sla_status:'on_time' },
+        { title:'Issue Policy Documents',                          description:'Generate and send policy declarations, certificates of insurance',             status:'completed',   priority:'high',   assigned_to:adminUser, category:'requirements',      due_date:'2025-01-15 17:00:00', completed_date:'2025-01-14 16:00:00', sla_target:'5 days', sla_status:'on_time' },
+        { title:'File Signed Application',                         description:'Archive signed ACORD 125 and 140 in document management system',              status:'completed',   priority:'low',    assigned_to:adminUser, category:'requirements',      due_date:'2025-01-16 17:00:00', completed_date:'2025-01-15 11:00:00', sla_target:'5 days', sla_status:'on_time' }
+    ],
+    [
+        { title:'Collect Missing MVR Reports',                     description:'3 of 22 drivers missing MVR - broker notified, awaiting response',             status:'in_progress', priority:'high',   assigned_to:adminUser, category:'requirements',      due_date:'2025-01-28 17:00:00', sla_target:'5 days', sla_status:'at_risk'  },
+        { title:'Run IDP on Financial Statements',                 description:'24-page financials uploaded - trigger IDP extraction pipeline',                status:'pending',     priority:'medium', assigned_to:adminUser, category:'third_party_data', due_date:'2025-01-30 17:00:00', sla_target:'3 days', sla_status:'on_time' },
+        { title:'Validate DOT Inspection Findings',               description:'2024 DOT inspection shows 4 flagged items - review against appetite',          status:'pending',     priority:'medium', assigned_to:adminUser, category:'risk_assessment',  due_date:'2025-02-03 17:00:00', sla_target:'5 days', sla_status:'on_time' }
+    ],
+    [
+        { title:'Send Declination Letter to Broker',              description:'Formal decline letter required within 5 business days of decision per state law', status:'completed', priority:'critical',assigned_to:adminUser, category:'requirements',      due_date:'2025-01-23 17:00:00', completed_date:'2025-01-20 10:00:00', sla_target:'5 days', sla_status:'on_time' },
+        { title:'Log Decline Reason in UW System',               description:'Document specific decline reasons for actuarial and compliance review',          status:'completed',   priority:'medium', assigned_to:adminUser, category:'risk_assessment',  due_date:'2025-01-20 17:00:00', completed_date:'2025-01-19 15:00:00', sla_target:'24 hrs', sla_status:'on_time' },
+        { title:'Notify Reinsurance of Declined Risk',           description:'RI treaty requires notification of all declines exceeding $3M requested limit',  status:'completed',   priority:'low',    assigned_to:adminUser, category:'reinsurance',       due_date:'2025-01-25 17:00:00', completed_date:'2025-01-22 09:00:00', sla_target:'5 days', sla_status:'on_time' }
+    ]
+];
+
+subIds.forEach(function(subId, i) {
+    taskTemplates[i].forEach(function(t) {
+        t.submission = subId;
+        var tid = ins('uw_task', t);
+        gs.print('  Task: ' + t.title.substring(0,40) + '... -> ' + tid);
+    });
+});
+
+// ================================================================
+// NOTES (3 per submission = 15)
+// ================================================================
+gs.print('\n--- Inserting Notes ---');
+
+var noteTemplates = [
+    [
+        { type:'general',  note:'Broker confirmed fleet expansion from 10 to 12 units mid-policy year. Updated vehicle schedule received 01/15.',     created_by:adminUser, created_date:'2025-01-15 11:00:00' },
+        { type:'reminder', note:'Follow up with broker on Earl Patterson MVR by 01/22. Do not proceed to rating without clean MVR or exclusion.',    created_by:adminUser, created_date:'2025-01-16 09:30:00' },
+        { type:'task',     note:'Check if cargo type qualifies for freight broker endorsement per state filing requirements for TX and NM.',          created_by:adminUser, created_date:'2025-01-17 14:00:00' }
+    ],
+    [
+        { type:'general',  note:'HAZMAT carrier - confirm MC# 483920 active with FMCSA. DOT fitness rating must be Satisfactory before binding.',    created_by:adminUser, created_date:'2025-01-18 11:00:00' },
+        { type:'reminder', note:'Senior UW review call scheduled 01/21 at 2pm. Prepare loss ratio analysis and BASICS score summary.',               created_by:adminUser, created_date:'2025-01-18 15:00:00' },
+        { type:'general',  note:'Broker mentioned insured recently settled 2020 bodily injury claim for $95K. Confirm included in loss run figures.', created_by:adminUser, created_date:'2025-01-19 10:00:00' }
+    ],
+    [
+        { type:'general',  note:'Fast track eligible - all docs clean, risk score 88, no prior claims. Approved in under 3 business days.',          created_by:adminUser, created_date:'2025-01-12 08:00:00' },
+        { type:'general',  note:'Binding authority confirmed at $1M per occurrence. COI issued to certificate holder: Amazon Logistics Partners.',   created_by:adminUser, created_date:'2025-01-13 16:00:00' },
+        { type:'reminder', note:'Annual renewal reminder set for 12/15/2025. Broker prefers 45-day advance notice for remarketing if needed.',       created_by:adminUser, created_date:'2025-01-14 17:00:00' }
+    ],
+    [
+        { type:'general',  note:'Missing MVRs for drivers Jackson, Ortega, and Reyes. Broker emailed 01/20, 2nd notice to go out 01/27 if no response.', created_by:adminUser, created_date:'2025-01-20 16:00:00' },
+        { type:'reminder', note:'DOT inspection flagged items: 1 brake violation, 2 lighting issues, 1 log book discrepancy. Request corrective action.',  created_by:adminUser, created_date:'2025-01-21 09:00:00' },
+        { type:'task',     note:'Obtain signed cargo insurance waiver for high-value electronics per underwriting guideline UWG-CA-112 section 4.3.', created_by:adminUser, created_date:'2025-01-22 11:30:00' }
+    ],
+    [
+        { type:'general',  note:'Decline rationale: 3-year loss ratio 138%, DUI conviction driver D-001 still active, out of appetite per guidelines.', created_by:adminUser, created_date:'2025-01-18 10:00:00' },
+        { type:'general',  note:'Declination letter sent via certified mail and email to broker 01/20/2025. Acknowledged receipt 01/21/2025.',       created_by:adminUser, created_date:'2025-01-20 11:00:00' },
+        { type:'reminder', note:'Monitor for re-submission. Insured may return with cleaned fleet and driver roster. Re-evaluate in 12 months.',      created_by:adminUser, created_date:'2025-01-21 14:00:00' }
+    ]
+];
+
+subIds.forEach(function(subId, i) {
+    noteTemplates[i].forEach(function(n) {
+        n.submission = subId;
+        var nid = ins('note', n);
+        gs.print('  Note: [' + n.type + '] -> ' + nid);
+    });
+});
+
+// ================================================================
+// MESSAGES (3 per submission = 15)
+// ================================================================
+gs.print('\n--- Inserting Messages ---');
+
+var msgTemplates = [
+    [
+        { subject:'RE: Apex Transport - New Submission UWS-2025-0001',   from_email:'broker@apextransport.com',       to_email:'uw@insurer.com',           body:'Hi team, please find attached ACORD 125, ACORD 140, and 3-year loss runs for Apex Transport. Effective date 02/01. Let me know if you need anything else. - Mike',                   direction:'inbound',  folder:'inbox', sent_date:'2025-01-15 09:00:00' },
+        { subject:'Apex Transport - Additional Info Required',           from_email:'uw@insurer.com',                 to_email:'broker@apextransport.com', body:'Mike, we need an MVR for driver Earl Patterson (D-003) before we can proceed to rating. Please provide by 01/22. Also, fleet maintenance logs for the past 24 months.',             direction:'outbound', folder:'sent',  sent_date:'2025-01-16 10:30:00' },
+        { subject:'Apex Transport - MVR for Patterson Attached',         from_email:'broker@apextransport.com',       to_email:'uw@insurer.com',           body:'Attached is Earl Patterson\'s MVR. Note he has 2 speeding violations in 2023 but no accidents. Happy to discuss if it helps move things along. - Mike',                          direction:'inbound',  folder:'inbox', sent_date:'2025-01-18 14:00:00' }
+    ],
+    [
+        { subject:'Blue Ridge Logistics - Urgent Submission',           from_email:'agent@blueridgelogistics.com',   to_email:'uw@insurer.com',           body:'Submitting Blue Ridge Logistics for renewal. They are a hazmat carrier with DOT# 2847361. Docs attached. Need a quote ASAP - incumbent going non-renew. - Tom',               direction:'inbound',  folder:'inbox', sent_date:'2025-01-18 10:30:00' },
+        { subject:'Blue Ridge - Senior UW Review Required',             from_email:'uw@insurer.com',                 to_email:'sr.uw@insurer.com',        body:'Tom, this account needs senior review per our hazmat guidelines. Loss ratio is above threshold and I\'m seeing BASICS scores in the Unsafe Driving and HOS Compliance categories.', direction:'outbound', folder:'sent',  sent_date:'2025-01-19 09:00:00' },
+        { subject:'Blue Ridge Logistics - Complete Loss Run Needed',    from_email:'uw@insurer.com',                 to_email:'agent@blueridgelogistics.com', body:'Tom, we need full 5-year loss runs from ALL prior carriers, not just Zurich. This account has been with 3 carriers in the past 5 years per CLUE report.',            direction:'outbound', folder:'sent',  sent_date:'2025-01-20 11:00:00' }
+    ],
+    [
+        { subject:'Sunrise Courier - New Business Submission',          from_email:'owner@sunrisecourier.com',       to_email:'uw@insurer.com',           body:'Hello, I\'m the owner of Sunrise Courier Services. We\'re looking to move our commercial auto to a new carrier. Clean record, 5 vans, local delivery in Miami-Dade.',         direction:'inbound',  folder:'inbox', sent_date:'2025-01-10 08:00:00' },
+        { subject:'Sunrise Courier - Quote Ready UWS-2025-0003',       from_email:'uw@insurer.com',                 to_email:'owner@sunrisecourier.com', body:'Good news! Your submission has been approved. Annual premium is $18,450 for $1M liability, comp, and collision on all 5 vans. Please review the attached quote.',              direction:'outbound', folder:'sent',  sent_date:'2025-01-13 14:00:00' },
+        { subject:'Sunrise Courier - Binding Confirmation',            from_email:'owner@sunrisecourier.com',       to_email:'uw@insurer.com',           body:'We accept the quote and authorize binding effective 01/20/2025. Signed application is attached. Please issue the certificate to Amazon Flex as certificate holder.',          direction:'inbound',  folder:'inbox', sent_date:'2025-01-14 09:00:00' }
+    ],
+    [
+        { subject:'Desert Star Freight - New Submission',               from_email:'cfo@desertstarfreight.com',      to_email:'uw@insurer.com',           body:'Submitting Desert Star Freight for commercial auto renewal. We haul electronics primarily in the Southwest. 18 units, 22 drivers. Docs attached. - Rachel CFO',              direction:'inbound',  folder:'inbox', sent_date:'2025-01-20 14:00:00' },
+        { subject:'Desert Star - Missing MVRs and Documentation',       from_email:'uw@insurer.com',                 to_email:'cfo@desertstarfreight.com', body:'Rachel, we are missing MVRs for 3 drivers and need the signed loss run certification from Liberty Mutual. Also, the ACORD 125 has several fields that need clarification.',   direction:'outbound', folder:'sent',  sent_date:'2025-01-21 10:00:00' },
+        { subject:'RE: Desert Star - Partial Response',                 from_email:'cfo@desertstarfreight.com',      to_email:'uw@insurer.com',           body:'Attached are 2 of the 3 MVRs. Driver Jackson\'s MVR is being disputed with the DMV due to an error. We expect resolution within 10 days. Can we proceed with a conditional quote?', direction:'inbound', folder:'inbox', sent_date:'2025-01-23 15:00:00' }
+    ],
+    [
+        { subject:'Great Lakes Haulers - Renewal Submission',           from_email:'mgr@greatlakeshaulers.com',      to_email:'uw@insurer.com',           body:'Submitting Great Lakes Haulers for renewal. I know we had a rough year but we\'ve put in new safety protocols and replaced 8 drivers. Please consider. - Bob Manager',       direction:'inbound',  folder:'inbox', sent_date:'2025-01-05 11:00:00' },
+        { subject:'Great Lakes - Underwriting Concerns',               from_email:'uw@insurer.com',                 to_email:'mgr@greatlakeshaulers.com', body:'Bob, after thorough review, we have serious concerns about the loss experience on this account. The 3-year loss ratio exceeds 95% and we have an open litigation matter.',     direction:'outbound', folder:'sent',  sent_date:'2025-01-15 14:00:00' },
+        { subject:'Great Lakes Haulers - Declination Notice',          from_email:'uw@insurer.com',                 to_email:'mgr@greatlakeshaulers.com', body:'Bob, it is with regret that we must decline to renew the Great Lakes Haulers account. Please see the attached formal declination letter for details and filing rights.',       direction:'outbound', folder:'sent',  sent_date:'2025-01-20 10:00:00' }
+    ]
+];
+
+subIds.forEach(function(subId, i) {
+    msgTemplates[i].forEach(function(m) {
+        m.submission = subId;
+        var mid = ins('message', m);
+        gs.print('  Message: [' + m.direction + '] ' + m.subject.substring(0,40) + '... -> ' + mid);
+    });
+});
+
+// ================================================================
+// REPORTS (3 per submission = 15)
+// ================================================================
+gs.print('\n--- Inserting Reports ---');
+
+var reportTemplates = [
+    [
+        { report_type:'mvr',         source:'ISO/ChoicePoint', status:'complete',     ordered_date:'2025-01-16', result:'D-003 Earl Patterson: 2 speeding violations (2023), no accidents. 3 points total.', vehicle:null, driver:null },
+        { report_type:'loss_control',source:'Internal',        status:'not_ordered',  ordered_date:null,         result:'', vehicle:null, driver:null },
+        { report_type:'carfax',      source:'Carfax',          status:'complete',     ordered_date:'2025-01-15', result:'V-001 VIN 1FUJGBDV4NLAA0001: No accidents reported. Clean title. 1 owner.', vehicle:null, driver:null }
+    ],
+    [
+        { report_type:'mvr',         source:'ISO/ChoicePoint', status:'processing',   ordered_date:'2025-01-19', result:'32 driver MVRs ordered. 6 flagged for violations. Results in 24-48 hrs.', vehicle:null, driver:null },
+        { report_type:'clue',        source:'ISO CLUE',        status:'complete',     ordered_date:'2025-01-18', result:'3 prior carriers identified. 2020-2024 claim history matches submitted loss runs.', vehicle:null, driver:null },
+        { report_type:'business_license', source:'State of NC',status:'complete',     ordered_date:'2025-01-18', result:'Active hazmat carrier license. MC# 483920 current. DOT fitness: Satisfactory.', vehicle:null, driver:null }
+    ],
+    [
+        { report_type:'mvr',         source:'ISO/ChoicePoint', status:'complete',     ordered_date:'2025-01-10', result:'All 6 drivers clean. Zero violations in 3 years. All CDL endorsements current.', vehicle:null, driver:null },
+        { report_type:'credit',      source:'Dun & Bradstreet',status:'complete',     ordered_date:'2025-01-10', result:'Business credit score: 87 (Excellent). D&B PAYDEX 82. No derogatory marks.', vehicle:null, driver:null },
+        { report_type:'carfax',      source:'Carfax',          status:'complete',     ordered_date:'2025-01-10', result:'All 5 vans: Clean titles, no accidents, dealer-maintained service records.', vehicle:null, driver:null }
+    ],
+    [
+        { report_type:'mvr',         source:'ISO/ChoicePoint', status:'complete',     ordered_date:'2025-01-21', result:'19 of 22 MVRs complete. 3 pending. Heather Blake: 3 violations (2022-2024).', vehicle:null, driver:null },
+        { report_type:'carfax',      source:'Carfax',          status:'complete',     ordered_date:'2025-01-21', result:'V-001: 1 minor accident 2021, repaired. V-002: Clean. V-003: Clean title.', vehicle:null, driver:null },
+        { report_type:'clue',        source:'ISO CLUE',        status:'complete',     ordered_date:'2025-01-20', result:'3 claims in 4 years confirmed. 1 open cargo theft claim matches submission.', vehicle:null, driver:null }
+    ],
+    [
+        { report_type:'mvr',         source:'ISO/ChoicePoint', status:'complete',     ordered_date:'2025-01-06', result:'48 drivers: 14 with violations, 3 with DUI, 7 with at-fault accidents. High risk.', vehicle:null, driver:null },
+        { report_type:'loss_control',source:'Safety First LLC',status:'complete',     ordered_date:'2025-01-06', result:'On-site inspection: 6 safety deficiencies found. Driver training program insufficient.', vehicle:null, driver:null },
+        { report_type:'clue',        source:'ISO CLUE',        status:'complete',     ordered_date:'2025-01-05', result:'9 claims confirmed across 3 carriers. Open litigation on 2023 fatality claim.', vehicle:null, driver:null }
+    ]
+];
+
+subIds.forEach(function(subId, i) {
+    reportTemplates[i].forEach(function(r) {
+        r.submission = subId;
+        if (vehicleIds[i][0]) r.vehicle = vehicleIds[i][0];
+        if (driverIds[i][0])  r.driver  = driverIds[i][0];
+        var rid = ins('report', r);
+        gs.print('  Report: ' + r.report_type + ' [' + r.status + '] -> ' + rid);
+    });
+});
+
+// ================================================================
+// REFERRALS (1 per submission = 5)
+// ================================================================
+gs.print('\n--- Inserting Referrals ---');
+
+var referralData = [
+    { required:false, reason:'Fleet size within standard appetite, no mandatory referral triggers met', refer_to:'Standard UW', guideline_reference:'UWG-CA-001 Section 2.1', authority_limit:'2500000', triggers:'None triggered' },
+    { required:true,  reason:'Hazmat cargo, BASICS scores above threshold, loss frequency > 1.5 per unit', refer_to:'Senior UW + Reinsurance', guideline_reference:'UWG-CA-020 Section 5.3', authority_limit:'5000000', triggers:'Hazmat Cargo|BASICS Score|Loss Frequency|High Fleet Size' },
+    { required:false, reason:'Fast track eligible - all criteria met, no referral required', refer_to:'N/A', guideline_reference:'UWG-CA-001 Section 1.2', authority_limit:'1000000', triggers:'None triggered' },
+    { required:true,  reason:'Open litigation claim, missing driver documentation, high-value cargo endorsement', refer_to:'Senior UW', guideline_reference:'UWG-CA-015 Section 3.1', authority_limit:'3000000', triggers:'Open Litigation|Missing MVR|High-Value Cargo' },
+    { required:true,  reason:'Loss ratio 138%, out-of-appetite risk, DUI driver active, mandatory decline review', refer_to:'UW Manager', guideline_reference:'UWG-CA-030 Section 8.1', authority_limit:'4000000', triggers:'Loss Ratio>100%|DUI Driver|Out of Appetite|Fleet Size>35' }
+];
+
+subIds.forEach(function(subId, i) {
+    var r = referralData[i];
+    r.submission = subId;
+    var rid = ins('referral', r);
+    gs.print('  Referral: required=' + r.required + ' -> ' + rid);
+});
+
+// ================================================================
+// AI RECOMMENDATIONS (1 per submission = 5)
+// ================================================================
+gs.print('\n--- Inserting AI Recommendations ---');
+
+var aiRecData = [
+    {
+        pricing_suggestion:   'Quote at standard rates with 5% surcharge for flagged driver',
+        pricing_reasoning:    'Risk score 72 is within standard appetite range. One flagged driver (D-003) warrants minor surcharge. Fleet size and cargo type are favorable. Prior carrier Nationwide with no non-renew indicates stable risk.',
+        manual_rate:          '42500',
+        ai_suggested_rate:    '44600',
+        ai_confidence:        82,
+        red_flags:            'Driver Earl Patterson: 3 points on MVR (2 speeding violations 2023)|Missing fleet maintenance records',
+        positive_factors:     'Established business (8 years)|Moderate fleet size (12 units)|Clean cargo type (general freight)|Interstate experience with good FMCSA record',
+        comparable_risks:     'SUB-2024-0043 (similar fleet, TX, approved at $43K)|SUB-2024-0081 (12-unit fleet, standard rate, no claims)'
+    },
+    {
+        pricing_suggestion:   'Decline or sub-standard market referral recommended',
+        pricing_reasoning:    'Hazmat carrier with BASICS scores in unsafe driving and HOS compliance categories. Loss frequency at 1.0 per unit-year significantly exceeds appetite threshold of 0.4. Five-year loss ratio estimated at 72% before open claims.',
+        manual_rate:          '185000',
+        ai_suggested_rate:    '0',
+        ai_confidence:        91,
+        red_flags:            'HAZMAT cargo class 3 (flammable liquids)|BASICS Unsafe Driving score 72 (threshold 65)|HOS Compliance BASICS score 78 (threshold 65)|6 drivers with violations|$95K bodily injury claim 2020|Open cargo spill claim',
+        positive_factors:     'Long operating history (15 years)|Active MC authority|Satisfactory DOT fitness rating',
+        comparable_risks:     'SUB-2023-0155 (hazmat, declined - similar profile)|SUB-2024-0019 (hazmat, conditional at 2.1x manual rate)'
+    },
+    {
+        pricing_suggestion:   'Approve at preferred rates - fast track eligible',
+        pricing_reasoning:    'Excellent risk profile: zero claims in 3 years, all drivers clean MVR, small local fleet, favorable territory (Miami-Dade, low truck theft rate). Business credit score 87 indicates financial stability.',
+        manual_rate:          '19200',
+        ai_suggested_rate:    '18450',
+        ai_confidence:        97,
+        red_flags:            'None identified',
+        positive_factors:     'Zero claims 3-year history|All 6 drivers clean MVR|Small local fleet (5 units)|Preferred territory|Excellent business credit (D&B 82)|Owner-operated, stable workforce',
+        comparable_risks:     'SUB-2024-0112 (5-van courier, FL, $17,800 approved)|SUB-2024-0067 (local courier, clean record, preferred rate)'
+    },
+    {
+        pricing_suggestion:   'Conditional quote pending complete documentation',
+        pricing_reasoning:    'Risk score 64 is borderline standard/conditional. Open litigation cargo theft claim is material. Missing MVRs prevent full driver risk assessment. Electronics cargo adds inland marine exposure not fully captured. Recommend conditional approval pending documentation.',
+        manual_rate:          '88000',
+        ai_suggested_rate:    '96500',
+        ai_confidence:        67,
+        red_flags:            'Open cargo theft litigation ($75K reserved)|3 missing MVR reports|Heather Blake: 3 violations 2022-2024|Electronics cargo - high theft target|4 DOT inspection deficiencies',
+        positive_factors:     'Established business (11 years)|Strong annual receipts ($5.1M)|Cargo endorsement available|Southwest territory - moderate risk',
+        comparable_risks:     'SUB-2023-0201 (electronics hauler, conditional, $91K)|SUB-2024-0044 (AZ carrier, similar size, standard rate)'
+    },
+    {
+        pricing_suggestion:   'Decline - outside underwriting appetite',
+        pricing_reasoning:    'Three-year loss ratio of 138% far exceeds the maximum acceptable threshold of 75%. Active DUI driver remains on roster. Open fatality litigation creates unlimited liability exposure. Loss control inspection identified 6 deficiencies. No corrective action evidence provided.',
+        manual_rate:          '0',
+        ai_suggested_rate:    '0',
+        ai_confidence:        98,
+        red_flags:            '3-year loss ratio 138%|Open fatality claim - unlimited exposure|Active DUI driver (Frank O\'Brien)|14 drivers with violations|3 drivers with DUI history|Loss control: 6 deficiencies|9 claims in 3 years|Fleet age avg 2019 (maintenance risk)',
+        positive_factors:     'Long business history (22 years)|Large revenue base ($12M ARR)',
+        comparable_risks:     'SUB-2023-0089 (declined, similar loss ratio)|SUB-2022-0044 (declined, fatality claim open)'
+    }
+];
+
+subIds.forEach(function(subId, i) {
+    var a = aiRecData[i];
+    a.submission = subId;
+    var aid = ins('ai_recommendation', a);
+    gs.print('  AI Rec: confidence=' + a.ai_confidence + '% -> ' + aid);
+});
+
+// ================================================================
+// COMPLIANCE (1 per submission = 5)
+// ================================================================
+gs.print('\n--- Inserting Compliance Records ---');
+
+var complianceData = [
+    { state_filing_compliant:true,  required_docs_received:false, guidelines_followed:true,  authority_verified:true,  missing_docs:'MVR - Earl Patterson|Fleet Maintenance Records (24 months)' },
+    { state_filing_compliant:true,  required_docs_received:false, guidelines_followed:false, authority_verified:false, missing_docs:'5-Year Loss Run (all carriers)|Complete MVR Bundle|Senior UW Approval Sign-off|Reinsurance Notification' },
+    { state_filing_compliant:true,  required_docs_received:true,  guidelines_followed:true,  authority_verified:true,  missing_docs:'' },
+    { state_filing_compliant:true,  required_docs_received:false, guidelines_followed:false, authority_verified:false, missing_docs:'MVR - T. Jackson|MVR - C. Ortega|MVR - M. Reyes|Signed Loss Run Certification (Liberty Mutual)|Financial Statement IDP Validation' },
+    { state_filing_compliant:true,  required_docs_received:true,  guidelines_followed:true,  authority_verified:true,  missing_docs:'' }
+];
+
+subIds.forEach(function(subId, i) {
+    var c = complianceData[i];
+    c.submission = subId;
+    var cid = ins('compliance', c);
+    gs.print('  Compliance: docs_received=' + c.required_docs_received + ', guidelines=' + c.guidelines_followed + ' -> ' + cid);
+});
+
+// ================================================================
+// SUMMARY
+// ================================================================
+gs.print('\n================================================================');
+gs.print('DEMO DATA INSERT COMPLETE');
+gs.print('================================================================');
+gs.print('Submissions      : ' + subIds.length);
+gs.print('Vehicles         : ' + (subIds.length * 3));
+gs.print('Drivers          : ' + (subIds.length * 3));
+gs.print('Driver Codes     : ' + (subIds.length * 3));
+gs.print('Documents        : ' + (subIds.length * 3));
+gs.print('IDP Fields       : ' + (subIds.length * 3));
+gs.print('Loss Runs        : ' + (subIds.length * 3));
+gs.print('Workflow Stages  : ' + (subIds.length * 3));
+gs.print('UW Tasks         : ' + (subIds.length * 3));
+gs.print('Notes            : ' + (subIds.length * 3));
+gs.print('Messages         : ' + (subIds.length * 3));
+gs.print('Reports          : ' + (subIds.length * 3));
+gs.print('Referrals        : ' + subIds.length);
+gs.print('AI Recommendations: ' + subIds.length);
+gs.print('Compliance       : ' + subIds.length);
+gs.print('================================================================');

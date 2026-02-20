@@ -4,6 +4,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import UnderwritingWorkbench from './components/UnderwritingWorkbench/UnderwritingWorkbench';
 import SubmissionIntake from './components/SubmissionIntake/SubmissionIntake';
 import Login from './components/Login/Login';
+import ServiceNowConnect from './components/ServiceNowConnect/ServiceNowConnect';
 import './App.css';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [sidenavExpanded, setSidenavExpanded] = useState(true);
+  const [snConnected, setSnConnected] = useState(false);
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -45,9 +47,9 @@ function App() {
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard onSubmissionSelect={handleSubmissionSelect} />;
+        return <Dashboard onSubmissionSelect={handleSubmissionSelect} snConnected={snConnected} />;
       case 'submissions':
-        return <Dashboard onSubmissionSelect={handleSubmissionSelect} />;
+        return <Dashboard onSubmissionSelect={handleSubmissionSelect} snConnected={snConnected} />;
       case 'workbench':
         return <UnderwritingWorkbench submission={selectedSubmission} />;
       case 'intake':
@@ -134,6 +136,9 @@ function App() {
                 style={{ width: '24px', height: '24px', borderRadius: '50%' }}
               />
             </button>
+
+            {/* ServiceNow Connect */}
+            <ServiceNowConnect onConnectionChange={setSnConnected} />
 
             {/* Divider */}
             <div style={{ width: '1px', height: '28px', backgroundColor: '#e0e0e0' }} />

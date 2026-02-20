@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DxcFlex,
   DxcTypography,
@@ -9,33 +9,99 @@ import {
   DxcTextInput,
   DxcSelect,
   DxcDialog,
+  DxcSpinner,
 } from '@dxc-technology/halstack-react';
 import WorkflowProgress from '../shared/WorkflowProgress';
 import GuidelinesPanel from '../shared/GuidelinesPanel';
 import LossRunsPanel from '../shared/LossRunsPanel';
 import ReportsPanel from '../shared/ReportsPanel';
+import { isConnected, fetchAllSubmissionData } from '../../services/servicenow';
 import './UnderwritingWorkbench.css';
+
+const fmtDate = (v) => v ? String(v).split(' ')[0] : '';
+const val     = (f)  => f?.display_value ?? f ?? '';
+const bool    = (f)  => f === 'true' || f === true;
 
 const UnderwritingWorkbench = ({ submission }) => {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
-  const [uploadedDocs, setUploadedDocs] = useState([
-    { id: 1, name: 'Bldg1.jpg', description: 'Pic of Building', docType: 'Auto Info', uploadedBy: 'John Smith', uploadDate: '01/01/2026' },
-    { id: 2, name: 'Home_Inspection.pdf', description: 'Inspection Report', docType: 'Insured Details', uploadedBy: 'Jane Gold', uploadDate: '01/01/2026' },
-    { id: 3, name: 'My_Healthcard.png', description: 'Health ID', docType: 'Policy Info', uploadedBy: 'John Smith', uploadDate: '01/01/2026' },
-  ]);
-  const [notes, setNotes] = useState([
-    { date: '01/02/2026', type: 'Reminder', note: 'Send a note to UW processing team to make sure they have gotten all forms' },
-    { date: '12/22/2025', type: 'Reminder', note: 'Follow up with Policy draft makers' },
-    { date: '12/10/2025', type: 'Task', note: 'Clone policy 123445 for future reference' },
-  ]);
-  const [messages, setMessages] = useState([
-    { date: '01/02/2026', subject: 'Verifying Liability', from: 'person@assuremail.com', message: 'Hello I need to verify a few files for this policy: 1234522' },
-    { date: '11/22/2025', subject: 'New System Policy', from: 'person@assuremail.com', message: 'We\'re creating a new policy in the system' },
-    { date: '10/19/2025', subject: 'Comprehensive Deductibles', from: 'person@assuremail.com', message: 'A question about Comprehensive Deductibles' },
-    { date: '10/01/2025', subject: 'Inquiry About Policy Changes', from: 'person@assuremail.com', message: 'We\'re creating a new policy in the system' },
-    { date: '09/08/2025', subject: 'Verifying Financial Coverage', from: 'person@assuremail.com', message: 'A question about Comprehensive Deductibles' },
-    { date: '08/03/2025', subject: 'Adding a New Vehicle', from: 'person@assuremail.com', message: 'Hello I need to verify a few files for this policy: 1234522' },
-  ]);
+
+  // ── Live data from ServiceNow ─────────────────────────────────
+  const [liveData, setLiveData]   = useState(null);
+  const [loading, setLoading]     = useState(false);
+  const [dataError, setDataError] = useState('');
+
+  // selected vehicle/driver index for Policy Data tab
+  const [selVehicle, setSelVehicle] = useState(0);
+  const [selDriver,  setSelDriver]  = useState(0);
+
+  useEffect(() => {
+    const sysId = submission?.sys_id;
+    if (!sysId || !isConnected()) return;
+
+    setLoading(true);
+    setDataError('');
+    fetchAllSubmissionData(sysId)
+      .then(data => setLiveData(data))
+      .catch(err => setDataError(err.message))
+      .finally(() => setLoading(false));
+  }, [submission?.sys_id]);
+
+  // ── Derive working datasets (live → fallback mock) ────────────
+  const uploadedDocs = liveData?.documents?.length
+    ? liveData.documents.map((d, i) => ({
+        id:         val(d.sys_id) || i,
+        name:       val(d.file_name),
+        description:val(d.description),
+        docType:    val(d.document_type),
+        uploadedBy: val(d.uploaded_by),
+        uploadDate: fmtDate(val(d.uploaded_date)),
+        status:     val(d.status),
+        pageCount:  val(d.page_count),
+        confidence: val(d.confidence_score),
+      }))
+    : [
+        { id: 1, name: 'Bldg1.jpg',           description: 'Pic of Building',    docType: 'Auto Info',       uploadedBy: 'John Smith', uploadDate: '01/01/2026' },
+        { id: 2, name: 'Home_Inspection.pdf',  description: 'Inspection Report',  docType: 'Insured Details', uploadedBy: 'Jane Gold',  uploadDate: '01/01/2026' },
+        { id: 3, name: 'My_Healthcard.png',    description: 'Health ID',          docType: 'Policy Info',     uploadedBy: 'John Smith', uploadDate: '01/01/2026' },
+      ];
+
+  const [notes, setNotes] = useState([]);
+  const [messages, setMessages] = useState([]);
+
+  // Sync notes/messages from live data
+  useEffect(() => {
+    if (liveData?.notes?.length) {
+      setNotes(liveData.notes.map(n => ({
+        date: fmtDate(val(n.created_date)),
+        type: val(n.type) || 'General',
+        note: val(n.note),
+      })));
+    } else if (!liveData) {
+      setNotes([
+        { date: '01/02/2026', type: 'Reminder', note: 'Send a note to UW processing team' },
+        { date: '12/22/2025', type: 'Reminder', note: 'Follow up with Policy draft makers' },
+        { date: '12/10/2025', type: 'Task',     note: 'Clone policy 123445 for future reference' },
+      ]);
+    }
+  }, [liveData]);
+
+  useEffect(() => {
+    if (liveData?.messages?.length) {
+      setMessages(liveData.messages.map(m => ({
+        date:    fmtDate(val(m.sent_date)),
+        subject: val(m.subject),
+        from:    val(m.from_email),
+        message: val(m.body),
+        folder:  val(m.folder) || 'inbox',
+      })));
+    } else if (!liveData) {
+      setMessages([
+        { date: '01/02/2026', subject: 'Verifying Liability',        from: 'person@assuremail.com', message: 'Hello I need to verify a few files for this policy: 1234522', folder: 'inbox' },
+        { date: '11/22/2025', subject: 'New System Policy',          from: 'person@assuremail.com', message: "We're creating a new policy in the system",                   folder: 'inbox' },
+        { date: '10/19/2025', subject: 'Comprehensive Deductibles',  from: 'person@assuremail.com', message: 'A question about Comprehensive Deductibles',                  folder: 'inbox' },
+      ]);
+    }
+  }, [liveData]);
   const [activeMessageTab, setActiveMessageTab] = useState(0);
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [submissionAccepted, setSubmissionAccepted] = useState(false);
@@ -60,23 +126,41 @@ const UnderwritingWorkbench = ({ submission }) => {
     );
   }
 
-  // Mock data for the various tabs
+  // Applicant details — prefer live submission fields
   const mockApplicantData = {
-    applicant: 'John Doe',
-    address: '70 Worcester St. Boston, MA 02118',
-    yearsInBusiness: '7 Years',
-    ageOfPolicy: '5 Years',
-    annualReceipts: '$ 5,000,000.00',
-    sicCode: '1711',
+    applicant:       submission?.applicantName || 'John Doe',
+    address:         submission?.primaryState  ? `${submission.primaryState}` : '70 Worcester St. Boston, MA 02118',
+    yearsInBusiness: submission?.years_in_business ? `${val(submission.years_in_business)} Years` : '7 Years',
+    ageOfPolicy:     '5 Years',
+    annualReceipts:  submission?.annual_receipts   ? `$${Number(val(submission.annual_receipts)).toLocaleString()}` : '$ 5,000,000.00',
+    sicCode:         submission?.sic_code          ? val(submission.sic_code) : '1711',
+    cargoType:       submission?.cargo_type        ? val(submission.cargo_type) : '',
+    fleetSize:       submission?.fleet_size        ? val(submission.fleet_size) : '',
+    driversCount:    submission?.drivers_count     ? val(submission.drivers_count) : '',
+    priorCarrier:    submission?.prior_carrier     ? val(submission.prior_carrier) : '',
+    priorPolicy:     submission?.prior_policy_number ? val(submission.prior_policy_number) : '',
   };
 
   const mockAgentData = {
-    name: 'Mike Johnson',
-    company: 'Johnson Insurance Sales',
-    phone: '(859)-5551234',
-    email: 'mike@johnsoninsurance.com',
+    name: 'Mike Johnson', company: 'Johnson Insurance Sales',
+    phone: '(859)-5551234', email: 'mike@johnsoninsurance.com',
     license: 'KY-INS-1928463',
   };
+
+  // Live data shortcuts
+  const vehicles      = liveData?.vehicles      || [];
+  const drivers       = liveData?.drivers       || [];
+  const lossRuns      = liveData?.lossRuns      || submission?.lossRuns      || [];
+  const reports       = liveData?.reports       || submission?.reports       || [];
+  const workflowStgs  = liveData?.workflowStages|| submission?.workflowStages|| [];
+  const aiRec         = liveData?.aiRecommendations?.[0] || null;
+  const compliance    = liveData?.compliance?.[0]        || null;
+  const referral      = liveData?.referrals?.[0]         || submission?.referral || null;
+  const uwTasks       = liveData?.tasks         || [];
+
+  // Driver codes for selected driver
+  const selectedDriverSysId = drivers[selDriver]?.sys_id?.value || drivers[selDriver]?.sys_id;
+  const driverCodes = liveData ? [] : []; // fetched separately if needed
 
   const renderTabContent = () => {
     switch (activeTabIndex) {
@@ -84,53 +168,119 @@ const UnderwritingWorkbench = ({ submission }) => {
         return (
           <DxcInset>
             <DxcFlex direction="column" gap="var(--spacing-gap-l)">
-              {/* Workflow Progress */}
-              {submission.workflow && <WorkflowProgress workflow={submission.workflow} />}
+
+              {/* Loading / Error banner */}
+              {loading && (
+                <DxcFlex alignItems="center" gap="var(--spacing-gap-s)" style={{ padding: '10px 14px', background: '#E3F2FD', borderRadius: '6px' }}>
+                  <DxcSpinner mode="small" />
+                  <DxcTypography fontSize="font-scale-02" color="#1565c0">Loading live data from ServiceNow...</DxcTypography>
+                </DxcFlex>
+              )}
+              {dataError && (
+                <div style={{ padding: '10px 14px', background: '#FDECEA', borderRadius: '6px', borderLeft: '4px solid #c62828' }}>
+                  <DxcTypography fontSize="font-scale-02" color="#c62828">⚠ {dataError}</DxcTypography>
+                </div>
+              )}
+
+              {/* Workflow Progress — live stages */}
+              {workflowStgs.length > 0 && (
+                <WorkflowProgress workflow={{
+                  stages: workflowStgs.map(s => ({
+                    name:   val(s.stage_name),
+                    status: val(s.status),
+                  }))
+                }} />
+              )}
+              {!workflowStgs.length && submission.workflow && <WorkflowProgress workflow={submission.workflow} />}
+
+              {/* UW Tasks summary */}
+              {uwTasks.length > 0 && (
+                <div className="detail-card">
+                  <div className="detail-card-header">
+                    <DxcFlex alignItems="center" gap="var(--spacing-gap-s)">
+                      <span className="material-icons-outlined" style={{ color: '#1B75BB', fontSize: '20px' }}>task_alt</span>
+                      <DxcTypography fontSize="font-scale-03" fontWeight="font-weight-semibold" color="#333333">UW Tasks ({uwTasks.length})</DxcTypography>
+                    </DxcFlex>
+                  </div>
+                  <div className="detail-card-body">
+                    <table className="data-table">
+                      <thead><tr><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Due</th><th>SLA</th></tr></thead>
+                      <tbody>
+                        {uwTasks.map((t, i) => (
+                          <tr key={i}>
+                            <td>{val(t.title)}</td>
+                            <td>{val(t.category)}</td>
+                            <td><DxcBadge label={val(t.priority)||'—'} mode="contextual" color={val(t.priority)==='critical'?'error':val(t.priority)==='high'?'warning':'info'} size="small" /></td>
+                            <td><DxcBadge label={val(t.status)||'—'} mode="contextual" color={val(t.status)==='completed'?'success':val(t.status)==='overdue'?'error':'warning'} size="small" /></td>
+                            <td>{fmtDate(val(t.due_date))}</td>
+                            <td><DxcBadge label={val(t.sla_status)||'—'} mode="contextual" color={val(t.sla_status)==='on_time'?'success':val(t.sla_status)==='breached'?'error':'warning'} size="small" /></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
               {/* Guidelines & Authority */}
-              {submission.guidelines && submission.referral && (
+              {submission.guidelines && referral && (
                 <GuidelinesPanel
                   guidelines={submission.guidelines}
-                  referral={submission.referral}
+                  referral={referral}
                   coverageAmount={submission.coverageAmount}
                 />
               )}
 
               {/* AI-Powered Risk Assessment & Recommendations */}
-              {submission.aiRecommendations && (
+              {(aiRec || submission.aiRecommendations) && (() => {
+                const ai = aiRec ? {
+                  pricing: {
+                    suggestion:  val(aiRec.pricing_suggestion),
+                    reasoning:   val(aiRec.pricing_reasoning),
+                    comparable:  val(aiRec.comparable_risks),
+                  },
+                  redFlags:        (val(aiRec.red_flags)||'').split('|').filter(Boolean).map(f=>f.trim()),
+                  positiveFactors: (val(aiRec.positive_factors)||'').split('|').filter(Boolean).map(f=>f.trim()),
+                  manualRate:      val(aiRec.manual_rate),
+                  aiSuggestedRate: val(aiRec.ai_suggested_rate),
+                  aiConfidence:    val(aiRec.ai_confidence),
+                } : submission.aiRecommendations;
+                return (
                 <div>
                   <DxcFlex alignItems="center" gap="var(--spacing-gap-s)" style={{ marginBottom: 'var(--spacing-gap-m)' }}>
                     <span className="material-icons" style={{ color: '#1B75BB', fontSize: '24px' }}>psychology</span>
                     <DxcTypography fontSize="font-scale-03" fontWeight="font-weight-semibold" color="#333333">
                       AI Risk Assessment & Recommendations
                     </DxcTypography>
+                    {aiRec && <DxcBadge label={`${val(aiRec.ai_confidence)}% confidence`} mode="contextual" color={Number(val(aiRec.ai_confidence))>=85?'success':'warning'} />}
                   </DxcFlex>
 
                   <DxcFlex direction="column" gap="var(--spacing-gap-m)">
+                    {/* Rate comparison */}
+                    {aiRec && (val(aiRec.manual_rate) || val(aiRec.ai_suggested_rate)) && (
+                      <DxcFlex gap="var(--spacing-gap-m)">
+                        <div style={{ flex:1, padding:'12px', background:'#F5F5F5', borderRadius:'6px', textAlign:'center' }}>
+                          <DxcTypography fontSize="font-scale-01" color="#808285">Manual Rate</DxcTypography>
+                          <DxcTypography fontSize="font-scale-04" fontWeight="font-weight-bold" color="#333">${Number(val(aiRec.manual_rate)||0).toLocaleString()}</DxcTypography>
+                        </div>
+                        <div style={{ flex:1, padding:'12px', background:'#E5F1FA', borderRadius:'6px', textAlign:'center' }}>
+                          <DxcTypography fontSize="font-scale-01" color="#1B75BB">AI Suggested Rate</DxcTypography>
+                          <DxcTypography fontSize="font-scale-04" fontWeight="font-weight-bold" color="#1B75BB">${Number(val(aiRec.ai_suggested_rate)||0).toLocaleString()}</DxcTypography>
+                        </div>
+                      </DxcFlex>
+                    )}
+
                     {/* AI Pricing Recommendation */}
-                    {submission.aiRecommendations.pricing && (
-                      <div style={{
-                        padding: 'var(--spacing-padding-m)',
-                        backgroundColor: '#E5F1FA',
-                        borderRadius: 'var(--border-radius-s)',
-                        borderLeft: '4px solid #1B75BB'
-                      }}>
+                    {ai.pricing && ai.pricing.suggestion && (
+                      <div style={{ padding:'var(--spacing-padding-m)', backgroundColor:'#E5F1FA', borderRadius:'var(--border-radius-s)', borderLeft:'4px solid #1B75BB' }}>
                         <DxcFlex gap="var(--spacing-gap-s)" alignItems="flex-start">
-                          <span className="material-icons" style={{ color: '#1B75BB', fontSize: '20px' }}>lightbulb</span>
-                          <div style={{ flex: 1 }}>
-                            <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#1B75BB">
-                              AI Pricing Recommendation
-                            </DxcTypography>
-                            <DxcTypography fontSize="font-scale-02" color="#333333" style={{ marginTop: '4px' }}>
-                              {submission.aiRecommendations.pricing.suggestion}
-                            </DxcTypography>
-                            <DxcTypography fontSize="font-scale-01" color="#666666" style={{ marginTop: '8px' }}>
-                              <strong>Reasoning:</strong> {submission.aiRecommendations.pricing.reasoning}
-                            </DxcTypography>
-                            {submission.aiRecommendations.pricing.comparable && (
-                              <DxcTypography fontSize="font-scale-01" color="#666666" style={{ marginTop: '4px' }}>
-                                <strong>Comparable:</strong> {submission.aiRecommendations.pricing.comparable}
-                              </DxcTypography>
+                          <span className="material-icons" style={{ color:'#1B75BB', fontSize:'20px' }}>lightbulb</span>
+                          <div style={{ flex:1 }}>
+                            <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#1B75BB">AI Pricing Recommendation</DxcTypography>
+                            <DxcTypography fontSize="font-scale-02" color="#333333" style={{ marginTop:'4px' }}>{ai.pricing.suggestion}</DxcTypography>
+                            <DxcTypography fontSize="font-scale-01" color="#666666" style={{ marginTop:'8px' }}><strong>Reasoning:</strong> {ai.pricing.reasoning}</DxcTypography>
+                            {ai.pricing.comparable && (
+                              <DxcTypography fontSize="font-scale-01" color="#666666" style={{ marginTop:'4px' }}><strong>Comparable:</strong> {ai.pricing.comparable}</DxcTypography>
                             )}
                           </div>
                         </DxcFlex>
@@ -138,30 +288,14 @@ const UnderwritingWorkbench = ({ submission }) => {
                     )}
 
                     {/* Red Flags */}
-                    {submission.aiRecommendations.redFlags && submission.aiRecommendations.redFlags.length > 0 && (
+                    {ai.redFlags && ai.redFlags.length > 0 && (
                       <div>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#D02E2E" style={{ marginBottom: '8px' }}>
-                          Risk Factors Identified
-                        </DxcTypography>
+                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#D02E2E" style={{ marginBottom:'8px' }}>Risk Factors Identified</DxcTypography>
                         <DxcFlex direction="column" gap="var(--spacing-gap-s)">
-                          {submission.aiRecommendations.redFlags.map((flag, index) => (
-                            <div key={index} className="risk-row risk-row-error">
-                              <span className="material-icons-outlined risk-row-icon" style={{ color: '#D02E2E' }}>warning</span>
-                              <DxcFlex direction="column" gap="2px" style={{ flex: 1 }}>
-                                <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#D02E2E">
-                                  {typeof flag === 'string' ? flag : flag.title}
-                                </DxcTypography>
-                                {typeof flag === 'object' && flag.description && (
-                                  <DxcTypography fontSize="font-scale-01" color="#666666">
-                                    {flag.description}
-                                  </DxcTypography>
-                                )}
-                              </DxcFlex>
-                              {typeof flag === 'object' && flag.severity && (
-                                <span className={`risk-severity-pill risk-severity-${flag.severity.toLowerCase()}`}>
-                                  {flag.severity}
-                                </span>
-                              )}
+                          {ai.redFlags.map((flag, i) => (
+                            <div key={i} className="risk-row risk-row-error">
+                              <span className="material-icons-outlined risk-row-icon" style={{ color:'#D02E2E' }}>warning</span>
+                              <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#D02E2E">{typeof flag==='string'?flag:flag.title}</DxcTypography>
                             </div>
                           ))}
                         </DxcFlex>
@@ -169,74 +303,34 @@ const UnderwritingWorkbench = ({ submission }) => {
                     )}
 
                     {/* Positive Factors */}
-                    {submission.aiRecommendations.positiveFactors && submission.aiRecommendations.positiveFactors.length > 0 && (
+                    {ai.positiveFactors && ai.positiveFactors.length > 0 && (
                       <div>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#37A526" style={{ marginBottom: '8px' }}>
-                          Positive Risk Factors
-                        </DxcTypography>
+                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#37A526" style={{ marginBottom:'8px' }}>Positive Risk Factors</DxcTypography>
                         <DxcFlex direction="column" gap="var(--spacing-gap-s)">
-                          {submission.aiRecommendations.positiveFactors.map((factor, index) => (
-                            <div key={index} className="risk-row risk-row-success">
-                              <span className="material-icons-outlined risk-row-icon" style={{ color: '#37A526' }}>check_circle</span>
-                              <DxcFlex direction="column" gap="2px" style={{ flex: 1 }}>
-                                <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#37A526">
-                                  {typeof factor === 'string' ? factor : factor.title}
-                                </DxcTypography>
-                                {typeof factor === 'object' && factor.description && (
-                                  <DxcTypography fontSize="font-scale-01" color="#666666">
-                                    {factor.description}
-                                  </DxcTypography>
-                                )}
-                              </DxcFlex>
+                          {ai.positiveFactors.map((factor, i) => (
+                            <div key={i} className="risk-row risk-row-success">
+                              <span className="material-icons-outlined risk-row-icon" style={{ color:'#37A526' }}>check_circle</span>
+                              <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#37A526">{typeof factor==='string'?factor:factor.title}</DxcTypography>
                             </div>
                           ))}
                         </DxcFlex>
                       </div>
                     )}
-
-                    {/* Comparable Risks */}
-                    {submission.aiRecommendations.comparableRisks && submission.aiRecommendations.comparableRisks.length > 0 && (
-                      <div style={{
-                        padding: 'var(--spacing-padding-m)',
-                        backgroundColor: '#F5F5F5',
-                        borderRadius: 'var(--border-radius-s)'
-                      }}>
-                        <DxcFlex gap="var(--spacing-gap-s)" alignItems="flex-start">
-                          <span className="material-icons" style={{ color: '#666666', fontSize: '20px' }}>analytics</span>
-                          <div style={{ flex: 1 }}>
-                            <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
-                              Comparable Risks Analysis
-                            </DxcTypography>
-                            <div style={{ marginTop: '12px' }}>
-                              {submission.aiRecommendations.comparableRisks.map((risk, index) => (
-                                <div key={index} style={{
-                                  padding: '8px 0',
-                                  borderBottom: index < submission.aiRecommendations.comparableRisks.length - 1 ? '1px solid #E0E0E0' : 'none'
-                                }}>
-                                  <DxcTypography fontSize="font-scale-02" color="#333333" fontWeight="font-weight-medium">
-                                    {risk.account || risk.name}
-                                  </DxcTypography>
-                                  <DxcFlex gap="var(--spacing-gap-m)" style={{ marginTop: '4px' }}>
-                                    <DxcTypography fontSize="font-scale-01" color="#666666">
-                                      Loss Ratio: {typeof risk.lossRatio === 'number' ? (risk.lossRatio * 100).toFixed(0) + '%' : risk.lossRatio}
-                                    </DxcTypography>
-                                    <DxcTypography fontSize="font-scale-01" color="#37A526" fontWeight="font-weight-semibold">
-                                      Premium: ${typeof risk.premium === 'number' ? risk.premium.toLocaleString() : risk.premium}
-                                    </DxcTypography>
-                                  </DxcFlex>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </DxcFlex>
-                      </div>
-                    )}
                   </DxcFlex>
                 </div>
-              )}
+                );
+              })()}
 
               {/* Compliance & Authorization */}
-              {submission.compliance && (
+              {(compliance || submission.compliance) && (() => {
+                const c = compliance ? {
+                  stateFilingCompliant:  bool(compliance.state_filing_compliant),
+                  requiredDocsReceived:  bool(compliance.required_docs_received),
+                  guidelinesFollowed:    bool(compliance.guidelines_followed),
+                  authorityVerified:     bool(compliance.authority_verified),
+                  missingDocs: (val(compliance.missing_docs)||'').split('|').filter(Boolean).map(s=>s.trim()),
+                } : submission.compliance;
+                return (
                 <div style={{
                   padding: 'var(--spacing-padding-m)',
                   backgroundColor: '#FFFFFF',
@@ -252,250 +346,70 @@ const UnderwritingWorkbench = ({ submission }) => {
                     </DxcFlex>
 
                     {/* Compliance Checklist */}
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                      gap: 'var(--spacing-gap-m)'
-                    }}>
-                      {/* State Filing Compliance */}
-                      <div style={{
-                        padding: 'var(--spacing-padding-s)',
-                        backgroundColor: submission.compliance.stateFilingCompliant ? '#E8F5E9' : '#FFF3E0',
-                        borderRadius: 'var(--border-radius-s)',
-                        borderLeft: `4px solid ${submission.compliance.stateFilingCompliant ? '#37A526' : '#FFA500'}`
-                      }}>
-                        <DxcFlex gap="var(--spacing-gap-xs)" alignItems="center">
-                          <span className="material-icons" style={{
-                            color: submission.compliance.stateFilingCompliant ? '#37A526' : '#FFA500',
-                            fontSize: '20px'
-                          }}>
-                            {submission.compliance.stateFilingCompliant ? 'check_circle' : 'warning'}
-                          </span>
-                          <div>
-                            <DxcTypography fontSize="font-scale-01" color="#666666">
-                              State Filing
-                            </DxcTypography>
-                            <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color={
-                              submission.compliance.stateFilingCompliant ? '#37A526' : '#FFA500'
-                            }>
-                              {submission.compliance.stateFilingCompliant ? 'Compliant' : 'Pending'}
-                            </DxcTypography>
-                          </div>
-                        </DxcFlex>
-                      </div>
-
-                      {/* Required Documents */}
-                      <div style={{
-                        padding: 'var(--spacing-padding-s)',
-                        backgroundColor: submission.compliance.requiredDocsReceived ? '#E8F5E9' : '#FFF3E0',
-                        borderRadius: 'var(--border-radius-s)',
-                        borderLeft: `4px solid ${submission.compliance.requiredDocsReceived ? '#37A526' : '#FFA500'}`
-                      }}>
-                        <DxcFlex gap="var(--spacing-gap-xs)" alignItems="center">
-                          <span className="material-icons" style={{
-                            color: submission.compliance.requiredDocsReceived ? '#37A526' : '#FFA500',
-                            fontSize: '20px'
-                          }}>
-                            {submission.compliance.requiredDocsReceived ? 'check_circle' : 'warning'}
-                          </span>
-                          <div>
-                            <DxcTypography fontSize="font-scale-01" color="#666666">
-                              Required Documents
-                            </DxcTypography>
-                            <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color={
-                              submission.compliance.requiredDocsReceived ? '#37A526' : '#FFA500'
-                            }>
-                              {submission.compliance.requiredDocsReceived ? 'Complete' : 'Incomplete'}
-                            </DxcTypography>
-                          </div>
-                        </DxcFlex>
-                      </div>
-
-                      {/* Guidelines Followed */}
-                      <div style={{
-                        padding: 'var(--spacing-padding-s)',
-                        backgroundColor: submission.compliance.guidelinesFollowed ? '#E8F5E9' : '#FFEBEE',
-                        borderRadius: 'var(--border-radius-s)',
-                        borderLeft: `4px solid ${submission.compliance.guidelinesFollowed ? '#37A526' : '#D02E2E'}`
-                      }}>
-                        <DxcFlex gap="var(--spacing-gap-xs)" alignItems="center">
-                          <span className="material-icons" style={{
-                            color: submission.compliance.guidelinesFollowed ? '#37A526' : '#D02E2E',
-                            fontSize: '20px'
-                          }}>
-                            {submission.compliance.guidelinesFollowed ? 'check_circle' : 'cancel'}
-                          </span>
-                          <div>
-                            <DxcTypography fontSize="font-scale-01" color="#666666">
-                              Guidelines
-                            </DxcTypography>
-                            <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color={
-                              submission.compliance.guidelinesFollowed ? '#37A526' : '#D02E2E'
-                            }>
-                              {submission.compliance.guidelinesFollowed ? 'Followed' : 'Exception'}
-                            </DxcTypography>
-                          </div>
-                        </DxcFlex>
-                      </div>
-
-                      {/* Authority Verified */}
-                      <div style={{
-                        padding: 'var(--spacing-padding-s)',
-                        backgroundColor: submission.compliance.authorityVerified ? '#E8F5E9' : '#FFF3E0',
-                        borderRadius: 'var(--border-radius-s)',
-                        borderLeft: `4px solid ${submission.compliance.authorityVerified ? '#37A526' : '#FFA500'}`
-                      }}>
-                        <DxcFlex gap="var(--spacing-gap-xs)" alignItems="center">
-                          <span className="material-icons" style={{
-                            color: submission.compliance.authorityVerified ? '#37A526' : '#FFA500',
-                            fontSize: '20px'
-                          }}>
-                            {submission.compliance.authorityVerified ? 'check_circle' : 'pending'}
-                          </span>
-                          <div>
-                            <DxcTypography fontSize="font-scale-01" color="#666666">
-                              Authority
-                            </DxcTypography>
-                            <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color={
-                              submission.compliance.authorityVerified ? '#37A526' : '#FFA500'
-                            }>
-                              {submission.compliance.authorityVerified ? 'Verified' : 'Pending'}
-                            </DxcTypography>
-                          </div>
-                        </DxcFlex>
-                      </div>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'var(--spacing-gap-m)' }}>
+                      {[
+                        { label:'State Filing',      ok: c.stateFilingCompliant, yes:'Compliant',  no:'Pending'    },
+                        { label:'Required Documents', ok: c.requiredDocsReceived, yes:'Complete',   no:'Incomplete' },
+                        { label:'Guidelines',         ok: c.guidelinesFollowed,   yes:'Followed',   no:'Exception'  },
+                        { label:'Authority',          ok: c.authorityVerified,    yes:'Verified',   no:'Pending'    },
+                      ].map(item => (
+                        <div key={item.label} style={{ padding:'var(--spacing-padding-s)', backgroundColor:item.ok?'#E8F5E9':'#FFF3E0', borderRadius:'var(--border-radius-s)', borderLeft:`4px solid ${item.ok?'#37A526':'#FFA500'}` }}>
+                          <DxcFlex gap="var(--spacing-gap-xs)" alignItems="center">
+                            <span className="material-icons" style={{ color:item.ok?'#37A526':'#FFA500', fontSize:'20px' }}>{item.ok?'check_circle':'warning'}</span>
+                            <div>
+                              <DxcTypography fontSize="font-scale-01" color="#666666">{item.label}</DxcTypography>
+                              <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color={item.ok?'#37A526':'#FFA500'}>{item.ok?item.yes:item.no}</DxcTypography>
+                            </div>
+                          </DxcFlex>
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Missing Documents Alert */}
-                    {submission.compliance.missingDocs && submission.compliance.missingDocs.length > 0 && (
-                      <div style={{
-                        padding: 'var(--spacing-padding-m)',
-                        backgroundColor: '#FFF3E0',
-                        borderRadius: 'var(--border-radius-s)',
-                        borderLeft: '4px solid #FFA500'
-                      }}>
+                    {/* Missing Documents */}
+                    {c.missingDocs && c.missingDocs.length > 0 && (
+                      <div style={{ padding:'var(--spacing-padding-m)', backgroundColor:'#FFF3E0', borderRadius:'var(--border-radius-s)', borderLeft:'4px solid #FFA500' }}>
                         <DxcFlex gap="var(--spacing-gap-s)" alignItems="flex-start">
-                          <span className="material-icons" style={{ color: '#FFA500', fontSize: '20px' }}>
-                            description
-                          </span>
-                          <div style={{ flex: 1 }}>
-                            <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#FFA500">
-                              Missing Documents ({submission.compliance.missingDocs.length})
-                            </DxcTypography>
-                            <ul style={{
-                              margin: '8px 0 0 0',
-                              paddingLeft: '20px',
-                              listStyleType: 'disc'
-                            }}>
-                              {submission.compliance.missingDocs.map((doc, index) => (
-                                <li key={index}>
-                                  <DxcTypography fontSize="font-scale-01" color="#666666">
-                                    {doc}
-                                  </DxcTypography>
-                                </li>
-                              ))}
+                          <span className="material-icons" style={{ color:'#FFA500', fontSize:'20px' }}>description</span>
+                          <div style={{ flex:1 }}>
+                            <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#FFA500">Missing Documents ({c.missingDocs.length})</DxcTypography>
+                            <ul style={{ margin:'8px 0 0 0', paddingLeft:'20px' }}>
+                              {c.missingDocs.map((doc, i) => <li key={i}><DxcTypography fontSize="font-scale-01" color="#666666">{doc}</DxcTypography></li>)}
                             </ul>
                           </div>
                         </DxcFlex>
                       </div>
                     )}
 
-                    {/* Referral Transparency */}
-                    {submission.referral && submission.referral.required && (
-                      <div style={{
-                        padding: 'var(--spacing-padding-m)',
-                        backgroundColor: '#FFF3E0',
-                        borderRadius: 'var(--border-radius-s)',
-                        borderLeft: '4px solid #FFA500'
-                      }}>
+                    {/* Referral */}
+                    {referral && (bool(referral.required) || referral.required===true) && (
+                      <div style={{ padding:'var(--spacing-padding-m)', backgroundColor:'#FFF3E0', borderRadius:'var(--border-radius-s)', borderLeft:'4px solid #FFA500' }}>
                         <DxcFlex gap="var(--spacing-gap-s)" alignItems="flex-start">
-                          <span className="material-icons" style={{ color: '#FFA500', fontSize: '20px' }}>
-                            forward_to_inbox
-                          </span>
-                          <div style={{ flex: 1 }}>
-                            <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#FFA500">
-                              Referral Required
-                            </DxcTypography>
-                            <div style={{
-                              marginTop: '8px',
-                              display: 'grid',
-                              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                              gap: 'var(--spacing-gap-m)'
-                            }}>
-                              <div>
-                                <DxcTypography fontSize="font-scale-01" color="#666666">
-                                  Refer To
-                                </DxcTypography>
-                                <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
-                                  {submission.referral.referTo}
-                                </DxcTypography>
-                              </div>
-                              <div>
-                                <DxcTypography fontSize="font-scale-01" color="#666666">
-                                  Reason
-                                </DxcTypography>
-                                <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
-                                  {submission.referral.reason}
-                                </DxcTypography>
-                              </div>
-                              <div>
-                                <DxcTypography fontSize="font-scale-01" color="#666666">
-                                  Guideline Reference
-                                </DxcTypography>
-                                <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
-                                  {submission.referral.guidelineReference}
-                                </DxcTypography>
-                              </div>
+                          <span className="material-icons" style={{ color:'#FFA500', fontSize:'20px' }}>forward_to_inbox</span>
+                          <div style={{ flex:1 }}>
+                            <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#FFA500">Referral Required</DxcTypography>
+                            <div style={{ marginTop:'8px', display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(150px, 1fr))', gap:'var(--spacing-gap-m)' }}>
+                              <div><DxcTypography fontSize="font-scale-01" color="#666666">Refer To</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333">{val(referral.refer_to)||referral.referTo||'—'}</DxcTypography></div>
+                              <div><DxcTypography fontSize="font-scale-01" color="#666666">Reason</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333">{val(referral.reason)||'—'}</DxcTypography></div>
+                              <div><DxcTypography fontSize="font-scale-01" color="#666666">Guideline Ref</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333">{val(referral.guideline_reference)||referral.guidelineReference||'—'}</DxcTypography></div>
                             </div>
-                            {submission.referral.yourLimit && (
-                              <div style={{
-                                marginTop: '12px',
-                                padding: 'var(--spacing-padding-s)',
-                                backgroundColor: '#FFFFFF',
-                                borderRadius: 'var(--border-radius-s)'
-                              }}>
-                                <DxcTypography fontSize="font-scale-01" color="#666666">
-                                  <strong>Authority Check:</strong> Your authority limit is{' '}
-                                  <span style={{ color: '#37A526', fontWeight: 600 }}>
-                                    ${submission.referral.yourLimit.toLocaleString()}
-                                  </span>
-                                  {' '}but submission coverage is{' '}
-                                  <span style={{ color: '#D02E2E', fontWeight: 600 }}>
-                                    ${submission.coverageAmount.toLocaleString()}
-                                  </span>
-                                </DxcTypography>
-                              </div>
-                            )}
                           </div>
                         </DxcFlex>
                       </div>
                     )}
 
-                    {/* All Clear Message */}
-                    {submission.compliance.stateFilingCompliant &&
-                     submission.compliance.requiredDocsReceived &&
-                     submission.compliance.guidelinesFollowed &&
-                     submission.compliance.authorityVerified &&
-                     (!submission.referral || !submission.referral.required) && (
-                      <div style={{
-                        padding: 'var(--spacing-padding-m)',
-                        backgroundColor: '#E8F5E9',
-                        borderRadius: 'var(--border-radius-s)',
-                        textAlign: 'center'
-                      }}>
+                    {/* All Clear */}
+                    {c.stateFilingCompliant && c.requiredDocsReceived && c.guidelinesFollowed && c.authorityVerified && (!referral || !bool(referral.required)) && (
+                      <div style={{ padding:'var(--spacing-padding-m)', backgroundColor:'#E8F5E9', borderRadius:'var(--border-radius-s)', textAlign:'center' }}>
                         <DxcFlex gap="var(--spacing-gap-s)" alignItems="center" justifyContent="center">
-                          <span className="material-icons" style={{ color: '#37A526', fontSize: '24px' }}>
-                            verified
-                          </span>
-                          <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#37A526">
-                            ✓ All compliance and authorization requirements met
-                          </DxcTypography>
+                          <span className="material-icons" style={{ color:'#37A526', fontSize:'24px' }}>verified</span>
+                          <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#37A526">✓ All compliance and authorization requirements met</DxcTypography>
                         </DxcFlex>
                       </div>
                     )}
                   </DxcFlex>
                 </div>
-              )}
+                );
+              })()}
 
               {/* Applicant Details - own card */}
               <div className="detail-card">
@@ -611,7 +525,40 @@ const UnderwritingWorkbench = ({ submission }) => {
       case 1: // Loss Runs
         return (
           <DxcInset>
-            {submission.lossRuns ? (
+            {lossRuns.length > 0 ? (
+              <div className="detail-card">
+                <div className="detail-card-header">
+                  <DxcFlex alignItems="center" gap="var(--spacing-gap-s)">
+                    <span className="material-icons-outlined" style={{ color: '#1B75BB', fontSize: '20px' }}>history</span>
+                    <DxcTypography fontSize="font-scale-03" fontWeight="font-weight-semibold" color="#333333">Loss Runs ({lossRuns.length})</DxcTypography>
+                    <DxcBadge label="● Live" mode="contextual" color="success" size="small" />
+                  </DxcFlex>
+                </div>
+                <div className="detail-card-body">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Loss Date</th><th>Claim Type</th><th>Description</th>
+                        <th>Status</th><th>Incurred</th><th>Paid</th><th>Reserved</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lossRuns.map((lr, i) => (
+                        <tr key={i}>
+                          <td>{fmtDate(val(lr.loss_date))}</td>
+                          <td>{val(lr.claim_type)}</td>
+                          <td>{val(lr.description)}</td>
+                          <td><DxcBadge label={val(lr.claim_status)||'—'} mode="contextual" color={val(lr.claim_status)==='closed'?'success':val(lr.claim_status)==='open'?'error':'warning'} size="small" /></td>
+                          <td>${Number(val(lr.total_incurred)||0).toLocaleString()}</td>
+                          <td>${Number(val(lr.total_paid)||0).toLocaleString()}</td>
+                          <td>${Number(val(lr.total_reserved)||0).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : submission.lossRuns ? (
               <LossRunsPanel lossRuns={submission.lossRuns} />
             ) : (
               <DxcTypography>No loss runs data available</DxcTypography>
@@ -622,7 +569,39 @@ const UnderwritingWorkbench = ({ submission }) => {
       case 2: // Reports & Inspections
         return (
           <DxcInset>
-            {submission.reports ? (
+            {reports.length > 0 ? (
+              <div className="detail-card">
+                <div className="detail-card-header">
+                  <DxcFlex alignItems="center" gap="var(--spacing-gap-s)">
+                    <span className="material-icons-outlined" style={{ color: '#1B75BB', fontSize: '20px' }}>assessment</span>
+                    <DxcTypography fontSize="font-scale-03" fontWeight="font-weight-semibold" color="#333333">Reports & Inspections ({reports.length})</DxcTypography>
+                    <DxcBadge label="● Live" mode="contextual" color="success" size="small" />
+                  </DxcFlex>
+                </div>
+                <div className="detail-card-body">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Report Type</th><th>Source</th><th>Status</th>
+                        <th>Date Ordered</th><th>Score / Result</th><th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reports.map((r, i) => (
+                        <tr key={i}>
+                          <td>{val(r.report_type)}</td>
+                          <td>{val(r.source)}</td>
+                          <td><DxcBadge label={val(r.status)||'—'} mode="contextual" color={val(r.status)==='complete'||val(r.status)==='available'?'success':val(r.status)==='pending'?'warning':'info'} size="small" /></td>
+                          <td>{fmtDate(val(r.date_ordered))}</td>
+                          <td>{val(r.score)||val(r.result)||val(r.results)||'—'}</td>
+                          <td>{val(r.notes)||val(r.reason)||'—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : submission.reports ? (
               <ReportsPanel reports={submission.reports} />
             ) : (
               <DxcTypography>No reports data available</DxcTypography>
@@ -677,79 +656,83 @@ const UnderwritingWorkbench = ({ submission }) => {
                     <DxcFlex alignItems="center" gap="var(--spacing-gap-s)">
                       <span className="material-icons-outlined" style={{ color: '#1B75BB', fontSize: '20px' }}>directions_car</span>
                       <DxcTypography fontSize="font-scale-03" fontWeight="font-weight-semibold" color="#333333">
-                        Vehicle Details
+                        Vehicle Details {vehicles.length > 0 && `(${vehicles.length})`}
                       </DxcTypography>
+                      {vehicles.length > 0 && <DxcBadge label="● Live" mode="contextual" color="success" size="small" />}
                     </DxcFlex>
                     <DxcButton label="View Quote" iconPosition="after" icon="open_in_new" mode="text" onClick={() => {}} />
                   </DxcFlex>
                 </div>
                 <div className="detail-card-body">
-                  <DxcFlex direction="column" gap="var(--spacing-gap-m)">
-                    <DxcSelect
-                      label="Select Vehicle"
-                      options={[{ label: '1998 Ford Focus - 123xxx', value: '1' }]}
-                      value="1"
-                    />
-                    <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
-                      Vehicle 1 - 1998 Ford Focus - 123xxx
-                    </DxcTypography>
-                    <div className="detail-grid">
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">Year</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">1998</DxcTypography>
-                      </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">Cost New</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">$12,299.00</DxcTypography>
-                      </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">Make</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">Ford</DxcTypography>
-                      </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">State</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">WA</DxcTypography>
-                      </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">Model</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">Contour</DxcTypography>
-                      </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">Territory</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">001</DxcTypography>
-                      </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">Body Type</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">4 Door Hardtop</DxcTypography>
-                      </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">Class</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">9876</DxcTypography>
-                      </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">VIN</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">1001-1223453</DxcTypography>
-                      </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">Use</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">Commercial</DxcTypography>
-                      </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">Vehicle Type</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">Sedan</DxcTypography>
-                      </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">Coverage</DxcTypography>
+                  {vehicles.length > 0 ? (() => {
+                    const v = vehicles[selVehicle] || vehicles[0];
+                    return (
+                      <DxcFlex direction="column" gap="var(--spacing-gap-m)">
+                        {vehicles.length > 1 && (
+                          <DxcSelect
+                            label="Select Vehicle"
+                            options={vehicles.map((veh, i) => ({
+                              label: `${val(veh.year) || ''} ${val(veh.make) || ''} ${val(veh.model) || ''} — ${val(veh.vin) || 'No VIN'}`.trim(),
+                              value: String(i),
+                            }))}
+                            value={String(selVehicle)}
+                            onChange={(value) => setSelVehicle(Number(value))}
+                          />
+                        )}
                         <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
-                          Liab, Comm'l, No Fault, Med Pay, Towing
+                          Vehicle {selVehicle + 1} — {val(v.year)} {val(v.make)} {val(v.model)}
                         </DxcTypography>
+                        <div className="detail-grid">
+                          {[
+                            { label: 'Year',         value: val(v.year)          },
+                            { label: 'Make',         value: val(v.make)          },
+                            { label: 'Model',        value: val(v.model)         },
+                            { label: 'VIN',          value: val(v.vin)           },
+                            { label: 'Body Type',    value: val(v.body_type)     },
+                            { label: 'Vehicle Type', value: val(v.vehicle_type)  },
+                            { label: 'Use',          value: val(v.use)           },
+                            { label: 'State',        value: val(v.state)         },
+                            { label: 'Territory',    value: val(v.territory)     },
+                            { label: 'Class',        value: val(v.vehicle_class) },
+                            { label: 'Cost New',     value: val(v.cost_new) ? `$${Number(val(v.cost_new)).toLocaleString()}` : '' },
+                            { label: 'Coverage',     value: val(v.coverage)      },
+                            { label: 'Symbol',       value: val(v.symbol)        },
+                          ].filter(f => f.value).map(f => (
+                            <div key={f.label} className="detail-item">
+                              <DxcTypography fontSize="font-scale-01" color="#808285">{f.label}</DxcTypography>
+                              <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">{f.value}</DxcTypography>
+                            </div>
+                          ))}
+                        </div>
+                      </DxcFlex>
+                    );
+                  })() : (
+                    <DxcFlex direction="column" gap="var(--spacing-gap-m)">
+                      <DxcSelect
+                        label="Select Vehicle"
+                        options={[{ label: '1998 Ford Focus - 123xxx', value: '1' }]}
+                        value="1"
+                      />
+                      <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
+                        Vehicle 1 - 1998 Ford Focus - 123xxx
+                      </DxcTypography>
+                      <div className="detail-grid">
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">Year</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">1998</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">Cost New</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">$12,299.00</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">Make</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">Ford</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">State</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">WA</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">Model</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">Contour</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">Territory</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">001</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">Body Type</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">4 Door Hardtop</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">Class</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">9876</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">VIN</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">1001-1223453</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">Use</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">Commercial</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">Vehicle Type</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">Sedan</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">Coverage</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">Liab, Comm'l, No Fault, Med Pay, Towing</DxcTypography></div>
+                        <div className="detail-item"><DxcTypography fontSize="font-scale-01" color="#808285">Symbol</DxcTypography><DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">10</DxcTypography></div>
                       </div>
-                      <div className="detail-item">
-                        <DxcTypography fontSize="font-scale-01" color="#808285">Symbol</DxcTypography>
-                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">10</DxcTypography>
-                      </div>
-                    </div>
-                  </DxcFlex>
+                    </DxcFlex>
+                  )}
                 </div>
               </div>
 
@@ -759,46 +742,82 @@ const UnderwritingWorkbench = ({ submission }) => {
                   <DxcFlex alignItems="center" gap="var(--spacing-gap-s)">
                     <span className="material-icons-outlined" style={{ color: '#1B75BB', fontSize: '20px' }}>person_outline</span>
                     <DxcTypography fontSize="font-scale-03" fontWeight="font-weight-semibold" color="#333333">
-                      Driver Details
+                      Driver Details {drivers.length > 0 && `(${drivers.length})`}
                     </DxcTypography>
+                    {drivers.length > 0 && <DxcBadge label="● Live" mode="contextual" color="success" size="small" />}
                   </DxcFlex>
                 </div>
                 <div className="detail-card-body">
-                  <DxcFlex direction="column" gap="var(--spacing-gap-m)">
-                    <DxcSelect
-                      label="Select Driver"
-                      options={[{ label: 'Scott Carpenter', value: '1' }]}
-                      value="1"
-                    />
-                    {/* Driver Codes grid subordinate to Driver Details */}
-                    <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
-                      Driver Codes
-                    </DxcTypography>
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Code</th>
-                          <th>Description</th>
-                          <th>Effective Date</th>
-                          <th>Points</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>DV01</td>
-                          <td>Clean Record Discount</td>
-                          <td>01/01/2026</td>
-                          <td>0</td>
-                        </tr>
-                        <tr>
-                          <td>DV05</td>
-                          <td>Defensive Driving Course</td>
-                          <td>06/15/2025</td>
-                          <td>-2</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </DxcFlex>
+                  {drivers.length > 0 ? (() => {
+                    const d = drivers[selDriver] || drivers[0];
+                    const driverName = [val(d.first_name), val(d.last_name)].filter(Boolean).join(' ') || val(d.name) || `Driver ${selDriver + 1}`;
+                    return (
+                      <DxcFlex direction="column" gap="var(--spacing-gap-m)">
+                        {drivers.length > 1 && (
+                          <DxcSelect
+                            label="Select Driver"
+                            options={drivers.map((dr, i) => ({
+                              label: [val(dr.first_name), val(dr.last_name)].filter(Boolean).join(' ') || val(dr.name) || `Driver ${i + 1}`,
+                              value: String(i),
+                            }))}
+                            value={String(selDriver)}
+                            onChange={(value) => setSelDriver(Number(value))}
+                          />
+                        )}
+                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
+                          {driverName}
+                        </DxcTypography>
+                        <div className="detail-grid">
+                          {[
+                            { label: 'First Name',        value: val(d.first_name)        },
+                            { label: 'Last Name',         value: val(d.last_name)         },
+                            { label: 'Date of Birth',     value: fmtDate(val(d.date_of_birth)) },
+                            { label: 'License Number',    value: val(d.license_number)    },
+                            { label: 'License State',     value: val(d.license_state)     },
+                            { label: 'Hire Date',         value: fmtDate(val(d.hire_date)) },
+                            { label: 'Experience (yrs)',  value: val(d.experience_years)  },
+                            { label: 'Status',            value: val(d.status)            },
+                          ].filter(f => f.value).map(f => (
+                            <div key={f.label} className="detail-item">
+                              <DxcTypography fontSize="font-scale-01" color="#808285">{f.label}</DxcTypography>
+                              <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">{f.value}</DxcTypography>
+                            </div>
+                          ))}
+                        </div>
+                        <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
+                          Driver Codes
+                        </DxcTypography>
+                        <table className="data-table">
+                          <thead>
+                            <tr><th>Code</th><th>Description</th><th>Effective Date</th><th>Points</th></tr>
+                          </thead>
+                          <tbody>
+                            <tr><td colSpan={4} style={{ color: '#808285', fontStyle: 'italic' }}>No driver codes on file</td></tr>
+                          </tbody>
+                        </table>
+                      </DxcFlex>
+                    );
+                  })() : (
+                    <DxcFlex direction="column" gap="var(--spacing-gap-m)">
+                      <DxcSelect
+                        label="Select Driver"
+                        options={[{ label: 'Scott Carpenter', value: '1' }]}
+                        value="1"
+                      />
+                      <DxcTypography fontSize="font-scale-02" fontWeight="font-weight-semibold" color="#333333">
+                        Driver Codes
+                      </DxcTypography>
+                      <table className="data-table">
+                        <thead>
+                          <tr><th>Code</th><th>Description</th><th>Effective Date</th><th>Points</th></tr>
+                        </thead>
+                        <tbody>
+                          <tr><td>DV01</td><td>Clean Record Discount</td><td>01/01/2026</td><td>0</td></tr>
+                          <tr><td>DV05</td><td>Defensive Driving Course</td><td>06/15/2025</td><td>-2</td></tr>
+                        </tbody>
+                      </table>
+                    </DxcFlex>
+                  )}
                 </div>
               </div>
             </DxcFlex>
@@ -881,8 +900,11 @@ const UnderwritingWorkbench = ({ submission }) => {
                   <DxcFlex direction="column" gap="var(--spacing-gap-m)">
                     <DxcSelect
                       label="Select Vehicle"
-                      options={[{ label: '1998 Ford Focus - 123xxx', value: '1' }]}
-                      value="1"
+                      options={vehicles.length > 0
+                        ? vehicles.map((veh, i) => ({ label: `${val(veh.year) || ''} ${val(veh.make) || ''} ${val(veh.model) || ''}`.trim() || `Vehicle ${i+1}`, value: String(i) }))
+                        : [{ label: '1998 Ford Focus - 123xxx', value: '1' }]}
+                      value={vehicles.length > 0 ? String(selVehicle) : '1'}
+                      onChange={vehicles.length > 0 ? (value) => setSelVehicle(Number(value)) : undefined}
                     />
                     <table className="data-table">
                       <thead>
@@ -934,8 +956,11 @@ const UnderwritingWorkbench = ({ submission }) => {
                   <DxcFlex direction="column" gap="var(--spacing-gap-m)">
                     <DxcSelect
                       label="Select Driver"
-                      options={[{ label: 'Scott Carpenter', value: '1' }]}
-                      value="1"
+                      options={drivers.length > 0
+                        ? drivers.map((dr, i) => ({ label: [val(dr.first_name), val(dr.last_name)].filter(Boolean).join(' ') || val(dr.name) || `Driver ${i+1}`, value: String(i) }))
+                        : [{ label: 'Scott Carpenter', value: '1' }]}
+                      value={drivers.length > 0 ? String(selDriver) : '1'}
+                      onChange={drivers.length > 0 ? (value) => setSelDriver(Number(value)) : undefined}
                     />
                     <table className="data-table">
                       <thead>
