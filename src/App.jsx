@@ -3,34 +3,35 @@ import { DxcApplicationLayout, DxcFlex, DxcTypography } from '@dxc-technology/ha
 import Dashboard from './components/Dashboard/Dashboard';
 import UnderwritingWorkbench from './components/UnderwritingWorkbench/UnderwritingWorkbench';
 import SubmissionIntake from './components/SubmissionIntake/SubmissionIntake';
-import Login from './components/Login/Login';
+// import Login from './components/Login/Login';
 import ServiceNowConnect from './components/ServiceNowConnect/ServiceNowConnect';
 import './App.css';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // const [user, setUser] = useState(null);
+  const [user] = useState({ name: 'Aniket Chaudhari', role: 'Underwriter' });
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [sidenavExpanded, setSidenavExpanded] = useState(true);
   const [snConnected, setSnConnected] = useState(false);
 
-  const handleLogin = (userData) => {
-    setUser(userData);
-    setIsAuthenticated(true);
-  };
+  // const handleLogin = (userData) => {
+  //   setUser(userData);
+  //   setIsAuthenticated(true);
+  // };
 
-  const handleLogout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    setCurrentView('dashboard');
-    setSelectedSubmission(null);
-  };
+  // const handleLogout = () => {
+  //   setUser(null);
+  //   setIsAuthenticated(false);
+  //   setCurrentView('dashboard');
+  //   setSelectedSubmission(null);
+  // };
 
-  // Show login screen if not authenticated
-  if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
-  }
+  // Login disabled for now
+  // if (!isAuthenticated) {
+  //   return <Login onLogin={handleLogin} />;
+  // }
 
   const handleSubmissionSelect = (submission) => {
     setSelectedSubmission(submission);
